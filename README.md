@@ -19,69 +19,7 @@
 
 ## 技术架构
 
-```mermaid
-graph TB
-    FRONT["前端 SPA"]
-    
-    subgraph API["API 网关层"]
-        direction LR
-        A[认证]
-        B[产品]
-        C[促销]
-        D[消息]
-        E[店铺]
-        F[统计]
-        G[销售记录]
-        H2[学生订单]
-        I[GPS定位]
-    end
-    
-    subgraph DATA["数据持久层"]
-        direction LR
-        U[("users")]
-        P[("products")]
-        M[("promotions")]
-        H[("shops")]
-        G2[("messages")]
-        S[("sales_records")]
-        O[("orders")]
-    end
-    
-    FRONT --> A
-    FRONT --> B
-    FRONT --> C
-    FRONT --> D
-    FRONT --> E
-    FRONT --> F
-    FRONT --> G
-    FRONT --> H2
-    FRONT --> I
-    A -.-> U
-    B -.-> P
-    C -.-> M
-    D -.-> G2
-    E -.-> H
-    G -.-> S
-    H2 -.-> O
-    F -.-> U
-    F -.-> P
-    F -.-> M
-    G --- S
-    H2 --- O
-
-    style FRONT fill:#1A56DB,color:#fff,stroke:#1e40af
-    style A fill:#10B981,color:#fff,stroke:#059669
-    style B fill:#10B981,color:#fff,stroke:#059669
-    style C fill:#10B981,color:#fff,stroke:#059669
-    style D fill:#10B981,color:#fff,stroke:#059669
-    style E fill:#10B981,color:#fff,stroke:#059669
-    style F fill:#10B981,color:#fff,stroke:#059669
-    style U fill:#F59E0B,stroke:#d97706
-    style P fill:#F59E0B,stroke:#d97706
-    style M fill:#F59E0B,stroke:#d97706
-    style H fill:#F59E0B,stroke:#d97706
-    style G fill:#F59E0B,stroke:#d97706
-```
+![Architecture Diagram](%E6%96%87%E6%A1%A3/architecture.svg)
 
 ### 分层说明
 

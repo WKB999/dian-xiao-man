@@ -19,7 +19,7 @@
 
 ## 技术架构
 
-![Architecture Diagram](%E6%96%87%E6%A1%A3/architecture.svg)
+<img src="%E6%96%87%E6%A1%A3/architecture.png" width="100%" alt="技术架构图"/>
 
 ### 分层说明
 

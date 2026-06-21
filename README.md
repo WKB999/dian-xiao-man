@@ -19,28 +19,44 @@
 
 ## 技术架构
 
-```
-  L1  FRONTEND                          Vanilla JS SPA, 176KB
- ┌──────────────────────────────────────────────────────────┐
- │  Dashboard  ·  Shop Manager  ·  AI Marketing             │
- │  Smart Pricing  ·  Sales Info  ·  Calendar  ·  Reports   │
- └────────────────────────┬─────────────────────────────────┘
-                          │  REST API (fetch + Token)
- ┌────────────────────────┴─────────────────────────────────┐
- │  L2  API GATEWAY                Flask, 16 endpoints      │
- │                                                          │
- │  /api/auth       /api/shops        /api/products          │
- │  /api/promotions /api/messages     /api/orders            │
- │  /api/sales-records  /api/stats    /api/geocode           │
- └────────────────────────┬─────────────────────────────────┘
-                          │  SQL (SQLite WAL Mode)
- ┌────────────────────────┴─────────────────────────────────┐
- │  L3  DATA STORE                 SQLite, 7 tables         │
- │                                                          │
- │  users   shops   products   promotions                   │
- │  messages   sales_records   orders                       │
- └──────────────────────────────────────────────────────────┘
-```
+<table>
+<tr><td colspan="3" align="center"><b>L1 前端层</b> — Vanilla JS SPA, 176KB, 零框架依赖</td></tr>
+<tr>
+<td width="33%"><b>商家端 (9 modules)</b><br>Dashboard · Shop Manager<br>AI Marketing · Smart Pricing<br>Sales Info · Calendar<br>Reports · Chat · Profile</td>
+<td width="33%"><b>学生端 (4 modules)</b><br>今日促销 · 附近店铺<br>我的订单 · 学校选择</td>
+<td width="33%"><b>定位功能</b><br>GPS 自动定位<br>百度地图手动选址<br>地址实时写入数据库</td>
+</tr>
+<tr><td colspan="3" align="center">↓ REST API (fetch + Bearer Token)</td></tr>
+<tr><td colspan="3" align="center" bgcolor="#f0f8ff"><b>L2 API 网关层</b> — Python Flask, 16 endpoints, CORS</td></tr>
+<tr>
+<td><code>/api/auth</code> · 注册登录</td>
+<td><code>/api/shops</code> · 店铺CRUD</td>
+<td><code>/api/products</code> · 产品CRUD</td>
+</tr>
+<tr>
+<td><code>/api/promotions</code> · 促销管理</td>
+<td><code>/api/messages</code> · 消息收发</td>
+<td><code>/api/orders</code> · 学生订单</td>
+</tr>
+<tr>
+<td><code>/api/sales-records</code> · 销售记录</td>
+<td><code>/api/stats</code> · 全站统计</td>
+<td><code>/api/geocode</code> · GPS逆地理编码</td>
+</tr>
+<tr><td colspan="3" align="center">↓ SQL (SQLite WAL Mode, ACID事务)</td></tr>
+<tr><td colspan="3" align="center" bgcolor="#fff8dc"><b>L3 数据持久层</b> — SQLite, 7 tables, 外键关联</td></tr>
+<tr>
+<td><code>users</code> · 用户账号</td>
+<td><code>shops</code> · 店铺信息</td>
+<td><code>products</code> · 产品清单</td>
+</tr>
+<tr>
+<td><code>promotions</code> · 促销活动</td>
+<td><code>messages</code> · 聊天消息</td>
+<td><code>sales_records</code> · 销售记录</td>
+</tr>
+<tr><td colspan="3" align="center"><code>orders</code> · 学生订单</td></tr>
+</table>
 
 ### 分层说明
 
@@ -54,27 +70,32 @@
 
 ### 核心业务流程
 
-```
-  Merchant                          Student
-  ────────                          ───────
-  Login                             Login
-    │                                  │
-    ▼                                  ▼
-  Manage Shop                       Browse
-  (产品/调价/促销)                  (促销/店铺)
-    │                                  │
-    ▼               ┌────────┐         ▼
-  Token Auth ──────→│ SHARED │←──── API Aggregate
-  SHA-256+shop_id   │ API    │      SQL JOIN
-    │               │ Auth   │         │
-    ▼               │ DB     │         ▼
-  SQLite Write ────→│ CORS   │←──── Filter
-  products/promos   └────────┘      按学校筛选
-    │                                  │
-    ▼                                  ▼
-  Render                             Order
-  前端动态更新                        下单写库
-```
+<table>
+<tr>
+<td width="50%" valign="top">
+<b>商家端</b><br>
+1. 登录 → 获取 Token<br>
+2. 管理店铺 → 添加产品 / 调价 / 发促销<br>
+3. Token 鉴权 → SHA-256 + shop_id 校验<br>
+4. 写入 SQLite → products / promos / shops<br>
+5. 前端动态渲染结果
+</td>
+<td width="50%" valign="top">
+<b>学生端</b><br>
+1. 登录 → 获取 Token<br>
+2. 浏览 → 今日促销 / 附近店铺<br>
+3. API 聚合查询 → SQL JOIN shops+products<br>
+4. 按学校筛选 → 精准匹配所在校区<br>
+5. 下单 → 存入 orders 表
+</td>
+</tr>
+<tr>
+<td colspan="2" align="center" bgcolor="#fafafa">
+<b>共享层</b>：API Gateway · Token Auth · SQLite DB · CORS Proxy<br>
+商家修改 → 即时写入 DB → 学生刷新 → 实时可见
+</td>
+</tr>
+</table>
 
 ## 技术栈
 

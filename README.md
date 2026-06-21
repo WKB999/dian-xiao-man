@@ -33,19 +33,15 @@
 
 ### 核心业务流程
 
-```mermaid
-graph LR
-    SHOP[商家] -->|1.添加产品/改价/发布促销| API[Flask API]
-    API -->|2.验证 Token + shopId 归属| AUTH{SHA-256 鉴权}
-    AUTH -->|3.鉴权通过| DB[SQLite DB]
-    DB -->|4.返回数据| API
-    API -->|5.JSON 响应| RENDER[前端动态渲染]
-    
-    STU[学生] -->|浏览促销/店铺| API
-    API -->|聚合查询 JOIN| DB
-    DB -->|shop+product+promo 聚合| API
-    API -->|按学校筛选返回| STU
-```
+**商家端**
+
+`商家登录 → 添加/改价/发促销 → SHA-256 Token 鉴权 → SQLite 写入 → 前端实时渲染`
+
+**学生端**
+
+`学生登录 → 浏览促销/店铺 → API 聚合查询(shops+products+promos) → 按学校筛选 → 下单`
+
+两条链路共享同一套 Token 鉴权与 SQLite 持久层，商家数据变更后学生端即时可见。
 
 ## 技术栈
 

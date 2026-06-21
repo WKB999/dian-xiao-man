@@ -1,0 +1,86 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 680 420" width="100%" role="img">
+  <title>店小满业务流程图</title>
+  <desc>商家端与学生在API与数据库上的操作流程</desc>
+  
+  <defs>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M2 1L8 5L2 9" fill="none" stroke="context-stroke" stroke-width="1.5" stroke-linecap="round"/>
+    </marker>
+  </defs>
+
+  <rect x="110" y="14" width="200" height="30" rx="8" fill="#E6F1FB" stroke="#85B7EB" stroke-width="0.5"/>
+  <text x="210" y="33" text-anchor="middle" fill="#0C447C" font-size="13" font-family="sans-serif" font-weight="500">Merchant Flow</text>
+
+  <rect x="370" y="14" width="200" height="30" rx="8" fill="#E1F5EE" stroke="#5DCAA5" stroke-width="0.5"/>
+  <text x="470" y="33" text-anchor="middle" fill="#085041" font-size="13" font-family="sans-serif" font-weight="500">Student Flow</text>
+
+  <rect x="110" y="54" width="180" height="40" rx="6" fill="#E6F1FB" stroke="#85B7EB" stroke-width="0.5"/>
+  <text x="200" y="71" text-anchor="middle" fill="#0C447C" font-size="12" font-family="sans-serif" font-weight="500">  Login</text>
+  <text x="200" y="86" text-anchor="middle" fill="#378ADD" font-size="11" font-family="sans-serif">验证身份 / 获取 Token</text>
+
+  <line x1="200" y1="94" x2="200" y2="114" stroke="#85B7EB" stroke-width="1.5" marker-end="url(#arr)"/>
+
+  <rect x="110" y="118" width="180" height="50" rx="6" fill="#E6F1FB" stroke="#85B7EB" stroke-width="0.5"/>
+  <text x="200" y="136" text-anchor="middle" fill="#0C447C" font-size="12" font-family="sans-serif" font-weight="500">  Manage Shop</text>
+  <text x="200" y="154" text-anchor="middle" fill="#378ADD" font-size="10" font-family="sans-serif">添加产品 / 调价 / 发布促销</text>
+
+  <line x1="200" y1="168" x2="200" y2="188" stroke="#85B7EB" stroke-width="1.5" marker-end="url(#arr)"/>
+
+  <rect x="110" y="192" width="180" height="36" rx="6" fill="#D3D1C7" stroke="#888780" stroke-width="0.5"/>
+  <text x="200" y="208" text-anchor="middle" fill="#2C2C2A" font-size="12" font-family="sans-serif" font-weight="500">Token Auth</text>
+  <text x="200" y="222" text-anchor="middle" fill="#5F5E5A" font-size="10" font-family="sans-serif">SHA-256 + shop_id check</text>
+
+  <line x1="200" y1="228" x2="200" y2="255" stroke="#888780" stroke-width="1.5" marker-end="url(#arr)"/>
+
+  <rect x="110" y="258" width="180" height="36" rx="6" fill="#FAEEDA" stroke="#EF9F27" stroke-width="0.5"/>
+  <text x="200" y="274" text-anchor="middle" fill="#633806" font-size="12" font-family="sans-serif" font-weight="500">SQLite Write</text>
+  <text x="200" y="289" text-anchor="middle" fill="#BA7517" font-size="10" font-family="sans-serif">products/promos/shops</text>
+
+  <line x1="200" y1="294" x2="200" y2="322" stroke="#EF9F27" stroke-width="1.5" marker-end="url(#arr)"/>
+
+  <rect x="110" y="326" width="180" height="36" rx="6" fill="#E6F1FB" stroke="#85B7EB" stroke-width="0.5"/>
+  <text x="200" y="342" text-anchor="middle" fill="#0C447C" font-size="12" font-family="sans-serif" font-weight="500">Render</text>
+  <text x="200" y="357" text-anchor="middle" fill="#378ADD" font-size="10" font-family="sans-serif">前端动态更新</text>
+
+  <rect x="370" y="54" width="180" height="40" rx="6" fill="#E1F5EE" stroke="#5DCAA5" stroke-width="0.5"/>
+  <text x="460" y="71" text-anchor="middle" fill="#085041" font-size="12" font-family="sans-serif" font-weight="500">  Login</text>
+  <text x="460" y="86" text-anchor="middle" fill="#1D9E75" font-size="11" font-family="sans-serif">学生账号 / 自动授权</text>
+
+  <line x1="460" y1="94" x2="460" y2="114" stroke="#5DCAA5" stroke-width="1.5" marker-end="url(#arr)"/>
+
+  <rect x="370" y="118" width="180" height="50" rx="6" fill="#E1F5EE" stroke="#5DCAA5" stroke-width="0.5"/>
+  <text x="460" y="136" text-anchor="middle" fill="#085041" font-size="12" font-family="sans-serif" font-weight="500">  Browse</text>
+  <text x="460" y="154" text-anchor="middle" fill="#1D9E75" font-size="10" font-family="sans-serif">今日促销 / 附近店铺</text>
+
+  <line x1="460" y1="168" x2="460" y2="188" stroke="#5DCAA5" stroke-width="1.5" marker-end="url(#arr)"/>
+
+  <rect x="370" y="192" width="180" height="36" rx="6" fill="#D3D1C7" stroke="#888780" stroke-width="0.5"/>
+  <text x="460" y="208" text-anchor="middle" fill="#2C2C2A" font-size="12" font-family="sans-serif" font-weight="500">API Aggregate</text>
+  <text x="460" y="222" text-anchor="middle" fill="#5F5E5A" font-size="10" font-family="sans-serif">SQL JOIN shops+products</text>
+
+  <line x1="460" y1="228" x2="460" y2="255" stroke="#5DCAA5" stroke-width="1.5" marker-end="url(#arr)"/>
+
+  <rect x="370" y="258" width="180" height="36" rx="6" fill="#E1F5EE" stroke="#5DCAA5" stroke-width="0.5"/>
+  <text x="460" y="274" text-anchor="middle" fill="#085041" font-size="12" font-family="sans-serif" font-weight="500">Filter</text>
+  <text x="460" y="289" text-anchor="middle" fill="#1D9E75" font-size="10" font-family="sans-serif">按学校精准筛选</text>
+
+  <line x1="460" y1="294" x2="460" y2="322" stroke="#5DCAA5" stroke-width="1.5" marker-end="url(#arr)"/>
+
+  <rect x="370" y="326" width="180" height="36" rx="6" fill="#E1F5EE" stroke="#5DCAA5" stroke-width="0.5"/>
+  <text x="460" y="342" text-anchor="middle" fill="#085041" font-size="12" font-family="sans-serif" font-weight="500">Order</text>
+  <text x="460" y="357" text-anchor="middle" fill="#1D9E75" font-size="10" font-family="sans-serif">下单 → 存入 orders 表</text>
+
+  <rect x="280" y="175" width="120" height="140" rx="10" fill="none" stroke="#888780" stroke-width="1" stroke-dasharray="4,3"/>
+  <text x="340" y="195" text-anchor="middle" fill="#5F5E5A" font-size="11" font-family="sans-serif" font-weight="500">Shared</text>
+  <text x="340" y="210" text-anchor="middle" fill="#888780" font-size="10" font-family="sans-serif">API Gateway</text>
+  <text x="340" y="226" text-anchor="middle" fill="#888780" font-size="10" font-family="sans-serif">+ Token Auth</text>
+  <text x="340" y="242" text-anchor="middle" fill="#888780" font-size="10" font-family="sans-serif">+ SQLite DB</text>
+  <text x="340" y="258" text-anchor="middle" fill="#888780" font-size="10" font-family="sans-serif">+ CORS Proxy</text>
+
+  <line x1="290" y1="207" x2="318" y2="207" stroke="#B4B2A9" stroke-width="1"/>
+  <line x1="290" y1="273" x2="318" y2="273" stroke="#B4B2A9" stroke-width="1"/>
+  <line x1="362" y1="207" x2="390" y2="207" stroke="#B4B2A9" stroke-width="1"/>
+
+  <rect x="110" y="384" width="460" height="24" rx="4" fill="#F1EFE8" stroke="#D3D1C7" stroke-width="0.5"/>
+  <text x="340" y="400" text-anchor="middle" fill="#5F5E5A" font-size="11" font-family="sans-serif">商家操作 → 即时写入 DB → 学生刷新页面 → 实时可见最新数据</text>
+</svg>

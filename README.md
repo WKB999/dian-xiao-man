@@ -21,22 +21,22 @@
 
 ```mermaid
 graph TB
-    FRONT["前端表现层 (Vanilla JS SPA · 176KB · 零依赖)"]
+    FRONT["前端 SPA"]
     
-    subgraph API["API 网关层 (Flask · 16+ endpoints · CORS · Token)"]
+    subgraph API["API 网关层"]
         direction LR
-        A["/api/auth<br/>注册登录"]
-        B["/api/products<br/>产品CRUD"]
-        C["/api/promotions<br/>促销CRUD"]
-        D["/api/messages<br/>消息持久化"]
-        E["/api/shops<br/>店铺聚合+更新"]
-        F["/api/stats<br/>全站统计"]
-        G["/api/sales-records<br/>销售记录"]
-        H2["/api/orders<br/>学生订单"]
-        I["/api/geocode<br/>逆地理编码"]
+        A[认证]
+        B[产品]
+        C[促销]
+        D[消息]
+        E[店铺]
+        F[统计]
+        G[销售记录]
+        H2[学生订单]
+        I[GPS定位]
     end
     
-    subgraph DATA["数据持久层 (SQLite · WAL · 7表)"]
+    subgraph DATA["数据持久层"]
         direction LR
         U[("users")]
         P[("products")]
@@ -47,24 +47,25 @@ graph TB
         O[("orders")]
     end
     
-    FRONT --- A
-    FRONT --- B
-    FRONT --- C
-    FRONT --- D
-    FRONT --- E
-    FRONT --- F
-    FRONT --- G
-    FRONT --- H2
-    FRONT --- I
-    A --- U
-    B --- P
-    C --- M
-    D --- G2
-    E --- H
-    F --- U
-    F --- P
-    F --- M
-    F --- G2
+    FRONT --> A
+    FRONT --> B
+    FRONT --> C
+    FRONT --> D
+    FRONT --> E
+    FRONT --> F
+    FRONT --> G
+    FRONT --> H2
+    FRONT --> I
+    A -.-> U
+    B -.-> P
+    C -.-> M
+    D -.-> G2
+    E -.-> H
+    G -.-> S
+    H2 -.-> O
+    F -.-> U
+    F -.-> P
+    F -.-> M
     G --- S
     H2 --- O
 
@@ -87,8 +88,8 @@ graph TB
 | 层级 | 技术选型 | 核心职责 |
 |------|----------|----------|
 | **前端表现层** | HTML5 + CSS3 + ES6+ (Vanilla JS) | SPA 路由切换 · 双角色 UI · 动态卡片渲染 · 离线回退策略 |
-| **API 网关层** | Python Flask + CORS | 11 个 RESTful 端点 · Token 认证 · 角色权限校验 · 请求参数校验 |
-| **数据持久层** | SQLite 3 (WAL 模式) | 5 表外键关联 · 自动建表迁移 · 种子数据初始化 · ACID 事务 |
+| **API 网关层** | Python Flask + CORS | 16 个 RESTful 端点 · Token 认证 · 角色权限校验 · 请求参数校验 |
+| **数据持久层** | SQLite 3 (WAL 模式) | 7 表外键关联 · 自动建表迁移 · 种子数据初始化 · ACID 事务 |
 | **安全层** | SHA-256 + Bearer Token | 密码哈希存储 · 会话 Token 管理 · shop_id 归属校验 · CORS 白名单 |
 | **部署层** | Gunicorn + systemd | 多 worker 生产环境 · 静态文件代理 · 单文件部署 · 零外部依赖 |
 
@@ -113,7 +114,7 @@ graph LR
 | 层级 | 技术 | 说明 |
 |------|------|------|
 | 前端 | HTML5 + CSS3 + ES6+ | Vanilla JS SPA，零框架，纯标准 Web 技术 |
-| 后端 | Python 3.7+ / Flask | RESTful API，11 个端点，标准库辅助 |
+| 后端 | Python 3.7+ / Flask | RESTful API，16 个端点，标准库辅助 |
 | 数据库 | SQLite 3 (WAL 模式) | 零配置，单文件部署，无需独立数据库服务 |
 | 认证 | Token + SHA-256 | 注册/登录、角色区分、店铺归属校验 |
 | 部署 | Gunicorn / systemd | 支持 Linux 生产环境，单文件前端可独立部署 |
@@ -127,17 +128,20 @@ dian-xiao-man/
 ├── .gitignore
 ├── 后端/
 │   └── server.py                       # Flask API 服务（端口 5000）
-│       包含 11 个 RESTful 端点：
+│       包含 16 个 RESTful 端点：
 │       · 用户注册/登录         POST /api/auth/register | login
 │       · 当前用户信息           GET  /api/me
-│       · 店铺列表（聚合数据）   GET  /api/shops
-│       · 产品 CRUD              GET|POST|PUT|DELETE /api/products/<shop_id>
-│       · 促销管理               GET|POST /api/promotions
-│       · 消息收发（含 AI 回复） GET|POST /api/messages/<shop_id>
+│       · 店铺列表（聚合数据）   GET  /api/shops · PUT 更新地址
+│       · 产品 CRUD              GET|POST|PUT|DELETE /api/products
+│       · 促销管理               GET|POST|DELETE /api/promotions
+│       · 销售记录               GET|POST|DELETE /api/sales-records
+│       · 学生订单               GET|POST /api/orders
+│       · 消息收发（+AI 回复）   GET|POST /api/messages
 │       · 全站统计               GET  /api/stats
+│       · GPS 逆地理编码         GET  /api/geocode
 ├── 前端/
 │   ├── generate_html.py               # HTML 生成器（Python 脚本）
-│   └── index.html                      # 完整 SPA 前端文件（164KB）
+│   └── index.html                      # 完整 SPA 前端文件（176KB）
 └── 文档/
     └── A4_proposal.html                # A4 单页方案文档
 ```
@@ -272,12 +276,10 @@ dian-xiao-man/
 | PUT | `/api/products/<shop_id>/<pid>` | Token | 更新产品信息（支持部分更新） |
 | DELETE | `/api/products/<shop_id>/<pid>` | Token | 删除产品 |
 | GET | `/api/promotions` | — | 获取全部促销列表 |
-| POST | `/api/promotions` | Token | 添加促销（需校验店铺归属） |
-| GET | `/api/messages/<shop_id>` | — | 获取店铺消息记录 |
-| POST | `/api/messages/<shop_id>` | — | 发送消息（含 AI 自动回复） |
-| GET | `/api/promotions` | — | 获取全部促销列表 |
 | POST | `/api/promotions` | Token | 添加促销 |
 | DELETE | `/api/promotions/<id>` | Token | 删除促销 |
+| GET | `/api/messages/<shop_id>` | — | 获取店铺消息记录 |
+| POST | `/api/messages/<shop_id>` | — | 发送消息（含 AI 自动回复） |
 | GET | `/api/sales-records/<shop_id>` | — | 获取销售记录 |
 | POST | `/api/sales-records/<shop_id>` | Token | 录入销售记录 |
 | DELETE | `/api/sales-records/<shop_id>/<rid>` | Token | 删除销售记录 |

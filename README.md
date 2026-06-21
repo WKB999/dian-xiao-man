@@ -19,7 +19,7 @@
 
 ## 技术架构
 
-![技术架构图](https://raw.githubusercontent.com/WKB999/dian-xiao-man/main/%E6%96%87%E6%A1%A3/architecture.png)
+![技术架构图](arch.png)
 
 ### 分层说明
 

@@ -19,7 +19,28 @@
 
 ## 技术架构
 
-![技术架构图](architecture-diagram.png)
+```
+  L1  FRONTEND                          Vanilla JS SPA, 176KB
+ ┌──────────────────────────────────────────────────────────┐
+ │  Dashboard  ·  Shop Manager  ·  AI Marketing             │
+ │  Smart Pricing  ·  Sales Info  ·  Calendar  ·  Reports   │
+ └────────────────────────┬─────────────────────────────────┘
+                          │  REST API (fetch + Token)
+ ┌────────────────────────┴─────────────────────────────────┐
+ │  L2  API GATEWAY                Flask, 16 endpoints      │
+ │                                                          │
+ │  /api/auth       /api/shops        /api/products          │
+ │  /api/promotions /api/messages     /api/orders            │
+ │  /api/sales-records  /api/stats    /api/geocode           │
+ └────────────────────────┬─────────────────────────────────┘
+                          │  SQL (SQLite WAL Mode)
+ ┌────────────────────────┴─────────────────────────────────┐
+ │  L3  DATA STORE                 SQLite, 7 tables         │
+ │                                                          │
+ │  users   shops   products   promotions                   │
+ │  messages   sales_records   orders                       │
+ └──────────────────────────────────────────────────────────┘
+```
 
 ### 分层说明
 
@@ -33,7 +54,27 @@
 
 ### 核心业务流程
 
-![业务流程图](workflow.svg)
+```
+  Merchant                          Student
+  ────────                          ───────
+  Login                             Login
+    │                                  │
+    ▼                                  ▼
+  Manage Shop                       Browse
+  (产品/调价/促销)                  (促销/店铺)
+    │                                  │
+    ▼               ┌────────┐         ▼
+  Token Auth ──────→│ SHARED │←──── API Aggregate
+  SHA-256+shop_id   │ API    │      SQL JOIN
+    │               │ Auth   │         │
+    ▼               │ DB     │         ▼
+  SQLite Write ────→│ CORS   │←──── Filter
+  products/promos   └────────┘      按学校筛选
+    │                                  │
+    ▼                                  ▼
+  Render                             Order
+  前端动态更新                        下单写库
+```
 
 ## 技术栈
 

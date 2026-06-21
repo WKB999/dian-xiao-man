@@ -19,7 +19,7 @@
 
 ## 技术架构
 
-![技术架构图](arch.png)
+![技术架构图](architecture-diagram.png)
 
 ### 分层说明
 

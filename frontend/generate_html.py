@@ -1,0 +1,2494 @@
+# -*- coding: utf-8 -*-
+"""店小满 V7 — 4项修复：报表手动录入、提醒完善(ics)、营销上下分栏、定价库存天气+售卖信息"""
+import pathlib
+OUTPUT = pathlib.Path(__file__).parent / "店小满_完整原型.html"
+
+HTML = r"""<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>店小满 - 学区AI促销平台</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='6' fill='%231A56DB'/><rect x='6' y='14' width='20' height='14' rx='3' fill='%23fff' opacity='0.9'/><rect x='12' y='18' width='8' height='10' rx='2' fill='%231A56DB'/><rect x='2' y='8' width='28' height='5' rx='2' fill='%23F59E0B'/><circle cx='12' cy='22' r='1.5' fill='%23fff'/><circle cx='20' cy='22' r='1.5' fill='%23fff'/></svg>">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --blue:#1A56DB;--blue-light:#3b82f6;--orange:#F59E0B;--green:#10B981;
+  --purple:#8B5CF6;--red:#EF4444;--gray-50:#f9fafb;--gray-100:#f3f4f6;
+  --gray-200:#e5e7eb;--gray-500:#6b7280;--gray-700:#374151;--gray-900:#1f2937;
+  --radius:14px;--radius-sm:10px;
+}
+body{
+  font-family:"PingFang SC","Microsoft YaHei","Inter",sans-serif;
+  background:linear-gradient(135deg,#f0f4ff,#faf5ff,#fff7ed);color:var(--gray-700);font-size:14px;
+}
+.topbar{background:#fff;border-bottom:1px solid var(--gray-200);box-shadow:0 1px 6px rgba(0,0,0,.06)}
+.site-header{position:sticky;top:0;z-index:9999;background:#fff}
+.topbar-inner{max-width:1200px;margin:0 auto;padding:10px 20px;display:flex;align-items:center;justify-content:space-between;gap:10px}
+.brand{font-size:20px;font-weight:800;white-space:nowrap}
+.brand .dot{color:var(--orange);font-size:16px}
+.brand .sub{color:var(--blue);font-size:11px;font-weight:600}
+.school-sel{background:var(--gray-100);border:1.5px solid var(--gray-200);border-radius:10px;padding:5px 12px;font-size:12px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:5px}
+.school-sel:hover{border-color:var(--blue);background:#eff6ff}
+.role-sw{display:flex;gap:3px;background:var(--gray-100);padding:3px;border-radius:10px}
+.role-btn{padding:5px 12px;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;transition:all .2s;border:none;background:transparent;color:var(--gray-500)}
+.role-btn.active{background:var(--blue);color:#fff}
+.tabnav{background:#fff;border-bottom:1px solid var(--gray-100);box-shadow:0 1px 3px rgba(0,0,0,.04)}
+.tabnav-inner{max-width:1200px;margin:0 auto;display:flex;gap:4px;padding:0 20px;overflow-x:auto;scrollbar-width:none}
+.tabnav-inner::-webkit-scrollbar{display:none}
+.tab-i{padding:12px 14px;font-size:12px;font-weight:600;cursor:pointer;border-bottom:2.5px solid transparent;white-space:nowrap;color:var(--gray-500);display:flex;align-items:center;gap:5px;transition:.2s}
+.tab-i:hover{color:var(--blue)}
+.tab-i.active{color:var(--blue);border-bottom-color:var(--blue)}
+.container{max-width:1200px;margin:0 auto;padding:20px 24px 48px}
+.page{display:none;animation:fadeIn .25s}
+.page.active{display:block}
+@keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px;align-items:start}
+.grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:16px;align-items:start}
+.grid-4{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:14px;margin-bottom:16px}
+@media(max-width:768px){.grid-2,.grid-3,.grid-4{grid-template-columns:1fr}}
+.card{background:#fff;border-radius:var(--radius);padding:24px;margin-bottom:16px;box-shadow:0 1px 4px rgba(0,0,0,.04);border:1px solid var(--gray-200)}
+.card-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px}
+.card-title{font-size:16px;font-weight:700;color:var(--gray-900);display:flex;align-items:center;gap:8px}
+.card-more{font-size:12px;color:var(--gray-500);cursor:pointer;font-weight:500}
+.card-more:hover{color:var(--blue)}
+.btn{padding:10px 20px;text-align:center;border-radius:var(--radius-sm);font-size:13px;font-weight:600;cursor:pointer;transition:all .2s;border:none;white-space:nowrap}
+.btn:hover{transform:translateY(-1px);box-shadow:0 4px 12px rgba(0,0,0,.12)}
+.btn:active{transform:scale(.97)}
+.btn-primary{background:var(--blue);color:#fff}
+.btn-ghost{background:#eff6ff;color:var(--blue);border:1.5px solid #bfdbfe}
+.btn-green{background:var(--green);color:#fff}
+.btn-orange{background:var(--orange);color:#fff}
+.btn-purple{background:var(--purple);color:#fff}
+.btn-red{background:var(--red);color:#fff}
+.btn-xs{padding:4px 8px;font-size:11px;border-radius:6px}
+.btn-sm{padding:6px 12px;font-size:12px;border-radius:8px}
+.hero{background:linear-gradient(135deg,var(--blue),#4f8cf7);color:#fff;border-radius:18px;padding:32px 32px 28px;margin-bottom:20px;position:relative;overflow:hidden}
+.hero::after{content:'';position:absolute;right:-60px;top:-60px;width:200px;height:200px;background:rgba(255,255,255,.08);border-radius:50%}
+.hero h2{font-size:20px;font-weight:700;margin-bottom:4px;position:relative;z-index:1}
+.hero p{font-size:13px;opacity:.88;margin-bottom:16px;position:relative;z-index:1}
+.hero-stats{display:flex;gap:20px;position:relative;z-index:1}
+.hero-stat{flex:1;text-align:center}
+.hero-stat .v{font-size:26px;font-weight:800}
+.hero-stat .l{font-size:11px;opacity:.85;margin-top:4px}
+.info-box{background:linear-gradient(135deg,#eff6ff,#dbeafe);border:1.5px solid #bfdbfe;border-radius:var(--radius-sm);padding:14px 18px;margin-bottom:16px;font-size:12px;color:var(--gray-700);line-height:1.7}
+.info-box strong{color:var(--blue)}
+.info-box .note{font-size:11px;color:var(--gray-500);margin-top:4px}
+.cal-card{background:#fff;border-radius:var(--radius);padding:20px 22px;position:relative;border:1px solid var(--gray-200);display:flex;flex-direction:column;transition:.2s}
+.cal-card:hover{border-color:var(--blue-light);box-shadow:0 2px 8px rgba(0,0,0,.06)}
+.cal-badge{position:absolute;top:16px;right:16px;padding:3px 12px;border-radius:12px;font-size:10px;font-weight:700;color:#fff}
+.cal-date{font-size:22px;font-weight:800;color:var(--orange);margin-bottom:8px}
+.cal-title{font-size:14px;font-weight:600;color:var(--gray-900);margin-bottom:6px}
+.cal-desc{font-size:11px;color:var(--gray-500);line-height:1.6;margin-bottom:14px;flex:1}
+.cal-actions{display:flex;gap:8px}
+.func-card{background:#fff;border-radius:var(--radius);padding:24px 16px;text-align:center;cursor:pointer;transition:all .2s;border:1px solid var(--gray-200)}
+.func-card:hover{transform:translateY(-4px);box-shadow:0 8px 28px rgba(0,0,0,.1)}
+.func-card .emoji{font-size:38px;margin-bottom:10px}
+.func-card .name{font-size:15px;font-weight:600;color:var(--gray-900)}
+.func-card .desc{font-size:12px;color:var(--gray-500);margin-top:4px}
+.fc-blue{border-top:4px solid var(--blue)}.fc-orange{border-top:4px solid var(--orange)}.fc-green{border-top:4px solid var(--green)}.fc-purple{border-top:4px solid var(--purple)}.fc-red{border-top:4px solid var(--red)}
+.form-group{margin-bottom:16px}
+.form-label{display:block;font-size:12.5px;color:var(--gray-500);font-weight:600;margin-bottom:6px}
+.form-input,.form-select,.form-textarea{width:100%;padding:10px 14px;border:1.5px solid var(--gray-200);border-radius:var(--radius-sm);font-size:14px;outline:none;transition:border-color .2s;background:#fff}
+.form-input:focus,.form-select:focus,.form-textarea:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(26,86,219,.1)}
+.form-textarea{min-height:80px;resize:vertical}
+.form-row{display:flex;gap:12px}.form-row .form-group{flex:1}
+.ptag{padding:6px 14px;border-radius:20px;font-size:13px;font-weight:600;background:var(--gray-100);color:var(--gray-700);cursor:pointer;transition:all .2s;border:2px solid transparent;display:inline-flex;align-items:center;gap:5px;margin:3px;user-select:none}
+.ptag:hover{background:var(--gray-200)}
+.ptag.selected{background:#eff6ff;color:var(--blue);border-color:var(--blue)}
+.ptag.selected.hot{background:#fef3c7;color:#92400e;border-color:#fbbf24}
+.ptag .del{font-size:13px;margin-left:2px;opacity:.5;cursor:pointer;transition:.2s}
+.ptag .del:hover{opacity:1;color:var(--red)}
+.product-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:14px}
+.prod-card{background:#fff;border:1.5px solid var(--gray-200);border-radius:var(--radius);overflow:hidden;transition:.2s}
+.prod-card:hover{border-color:var(--blue);box-shadow:0 4px 16px rgba(26,86,219,.1)}
+.prod-img{width:100%;height:160px;background:linear-gradient(135deg,#f0f4ff,#e8efff);display:flex;align-items:center;justify-content:center;font-size:48px;cursor:pointer;position:relative}
+.prod-img img{width:100%;height:100%;object-fit:cover}
+.prod-img .plus{position:absolute;bottom:10px;right:10px;background:var(--blue);color:#fff;width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:16px;cursor:pointer;opacity:.85;transition:.2s}
+.prod-img .plus:hover{opacity:1;transform:scale(1.1)}
+.prod-img input[type=file]{display:none}
+.prod-body{padding:14px 16px}
+.prod-name{font-size:14px;font-weight:700;display:flex;align-items:center;gap:6px;margin-bottom:4px}
+.prod-meta{font-size:11px;color:var(--gray-500);margin-bottom:4px}
+.prod-actions{display:flex;gap:6px;margin-top:10px}
+.badge{padding:2px 8px;border-radius:6px;font-size:10px;font-weight:600}
+.badge-hot{background:#fef3c7;color:#92400e}
+.badge-main{background:#dbeafe;color:#1e40af}
+.badge-slow{background:#fee2e2;color:#991b1b}
+.out-card{border-left:4px solid var(--orange);border-radius:0 12px 12px 0;background:linear-gradient(135deg,#fefce8,#fef3c7);padding:16px 18px;margin-bottom:14px}
+.out-card.blue{border-color:var(--blue);background:linear-gradient(135deg,#eff6ff,#dbeafe)}
+.out-card.green{border-color:var(--green);background:linear-gradient(135deg,#ecfdf5,#dcfce7)}
+.out-label{font-size:11px;font-weight:700;color:#92400e;margin-bottom:4px;display:flex;align-items:center;gap:5px}
+.out-text{font-size:13px;color:var(--gray-700);line-height:1.8;white-space:pre-line}
+.out-actions{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap}
+.oa{padding:5px 14px;border-radius:8px;font-size:11px;font-weight:600;cursor:pointer;transition:all .2s;border:1.5px solid;background:#fff}
+.oa:hover{transform:scale(1.05)}
+.oa-blue{color:var(--blue);border-color:var(--blue)}
+.oa-purple{color:var(--purple);border-color:var(--purple)}
+.oa-green{color:var(--green);border-color:var(--green)}
+.oa-orange{color:var(--orange);border-color:var(--orange)}
+
+/* V7 新增：定价库存输入 */
+.inv-row{display:flex;gap:10px;align-items:center;margin-top:8px}
+.inv-row input{width:100px;padding:8px 12px;border:1.5px solid var(--gray-200);border-radius:8px;font-size:13px;text-align:center;outline:none;transition:.2s}
+.inv-row input:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(26,86,219,.1)}
+.inv-row label{font-size:12px;color:var(--gray-500);font-weight:600;white-space:nowrap}
+
+/* V7 新增：天气卡片 */
+.weather-card{background:linear-gradient(135deg,#e0f2fe,#bae6fd);border:1.5px solid #7dd3fc;border-radius:var(--radius-sm);padding:16px 20px;margin-bottom:16px;display:flex;align-items:center;gap:20px;flex-wrap:wrap}
+.weather-card .w-icon{font-size:42px}
+.weather-card .w-info{flex:1;min-width:200px}
+.weather-card .w-temp{font-size:28px;font-weight:800;color:#0369a1}
+.weather-card .w-desc{font-size:13px;color:#0c4a6e;margin-top:2px}
+.weather-card .w-tip{font-size:11px;color:#0284c7;margin-top:4px}
+.weather-card .w-form{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.weather-card .w-form input,.weather-card .w-form select{padding:6px 10px;border:1.5px solid #7dd3fc;border-radius:8px;font-size:12px;outline:none;background:#fff}
+.weather-card .w-form input:focus,.weather-card .w-form select:focus{border-color:var(--blue)}
+
+/* V7 新增：报表录入表格 */
+.record-table{width:100%;border-collapse:collapse;font-size:13px}
+.record-table th{background:var(--gray-50);padding:10px 14px;text-align:left;font-size:11px;font-weight:700;color:var(--gray-500);text-transform:uppercase;border-bottom:2px solid var(--gray-200)}
+.record-table td{padding:12px 14px;border-bottom:1px solid var(--gray-100)}
+.record-table tr:hover td{background:var(--gray-50)}
+.record-table .r-del{color:var(--red);cursor:pointer;font-weight:700;opacity:.6;transition:.2s}
+.record-table .r-del:hover{opacity:1}
+.record-empty{text-align:center;padding:32px;color:var(--gray-400);font-size:13px}
+
+/* V7 新增：售卖信息区域 */
+.sales-section{border:1.5px solid var(--gray-200);border-radius:var(--radius);background:#fff;padding:24px;margin-bottom:16px}
+.sales-section .ss-head{display:flex;align-items:center;gap:8px;margin-bottom:16px;padding-bottom:14px;border-bottom:2px dashed var(--gray-100)}
+.sales-section .ss-head .ss-icon{font-size:24px}
+.sales-section .ss-title{font-size:15px;font-weight:700;color:var(--gray-900)}
+.sales-item{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;border-radius:10px;margin-bottom:8px;background:var(--gray-50);transition:.2s}
+.sales-item:hover{background:#eff6ff}
+.sales-item .si-left{display:flex;align-items:center;gap:10px}
+.sales-item .si-name{font-size:14px;font-weight:600}
+.sales-item .si-price{font-size:14px;font-weight:700;color:var(--red)}
+.sales-item .si-tag{font-size:10px;padding:3px 8px;border-radius:6px;font-weight:600}
+.price-table{width:100%;border-collapse:collapse;font-size:13px}
+.price-table th{background:var(--gray-50);padding:10px 14px;text-align:left;font-size:11px;font-weight:700;color:var(--gray-500);border-bottom:2px solid var(--gray-200)}
+.price-table td{padding:12px 14px;border-bottom:1px solid var(--gray-100)}
+.price-table .pt-price{font-weight:700;color:var(--gray-900)}
+.price-table .pt-tag{font-size:10px;padding:2px 8px;border-radius:6px;font-weight:600}
+.sync-highlight{animation:syncPulse .6s ease-out 2}
+@keyframes syncPulse{0%,100%{background:var(--gray-50)}50%{background:#dbeafe}}
+
+.pricing-card{background:#fff;border:1px solid var(--gray-200);border-radius:var(--radius);padding:20px 22px;margin-bottom:14px;transition:.2s}
+.pricing-card:hover{border-color:var(--blue);box-shadow:0 2px 8px rgba(0,0,0,.05)}
+.pricing-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px}
+.pricing-name{font-size:16px;font-weight:700;display:flex;align-items:center;gap:8px}
+.price-compare{display:flex;gap:14px;margin-bottom:14px}
+.price-box{flex:1;padding:16px;border-radius:12px;text-align:center;transition:.2s}
+.price-box.cur{background:#fef2f2}
+.price-box.sug{background:#ecfdf5}
+.pb-label{font-size:12px;opacity:.7;font-weight:600}
+.pb-value{font-size:28px;font-weight:800;margin-top:4px}
+.price-box.cur .pb-value{color:var(--red)}
+.price-box.sug .pb-value{color:var(--green)}
+.price-reasons{background:var(--gray-50);padding:14px 16px;border-radius:10px;border:1px solid var(--gray-100);font-size:12px;line-height:1.7}
+.pricing-ctx{background:linear-gradient(135deg,#eff6ff,#dbeafe);border:1.5px solid #bfdbfe;border-radius:var(--radius-sm);padding:14px 18px;margin-bottom:16px}
+.pricing-ctx .ctx-row{display:flex;gap:16px;font-size:11px;flex-wrap:wrap;line-height:1.7}
+.tnode{display:flex;align-items:center;justify-content:space-between;padding:14px 16px;border:1px solid var(--gray-100);border-radius:var(--radius-sm);margin-bottom:8px;background:#fff;transition:.2s}
+.tnode:hover{border-color:var(--blue)}
+.tnode-left{display:flex;align-items:center;gap:12px}
+.tn-dot{width:14px;height:14px;border-radius:50%;flex-shrink:0}
+.tn-dot.important{background:var(--red)}.tn-dot.normal{background:var(--blue)}.tn-dot.holiday{background:var(--orange)}
+.tn-name{font-size:14px;font-weight:600}
+.tn-date{font-size:12px;color:var(--gray-500);margin-left:10px}
+.tnode-right{display:flex;gap:6px}
+.act-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:18px}
+.act-card{background:#fff;border-radius:var(--radius);overflow:hidden;border:1px solid var(--gray-200);cursor:pointer;transition:all .25s}
+.act-card:hover{box-shadow:0 8px 28px rgba(0,0,0,.12);transform:translateY(-3px)}
+.act-banner{height:120px;display:flex;align-items:center;justify-content:center;font-size:48px;color:#fff;position:relative}
+.act-banner .promo-tag{position:absolute;top:10px;left:10px;background:rgba(0,0,0,.4);color:#fff;padding:3px 10px;border-radius:8px;font-size:10px;font-weight:600}
+.act-body{padding:16px 18px}
+.act-shop{display:flex;align-items:center;gap:10px;margin-bottom:8px}
+.act-shop-avatar{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:700;color:#fff;flex-shrink:0}
+.act-shop-name{font-size:13px;font-weight:600}
+.act-shop-dist{font-size:11px;color:var(--gray-500);margin-left:auto}
+.act-title{font-size:15px;font-weight:700;color:var(--gray-900);margin-bottom:6px}
+.act-desc{font-size:12px;color:var(--gray-500);line-height:1.5;margin-bottom:10px}
+.act-tags{display:flex;gap:6px;flex-wrap:wrap}
+.atag{font-size:10px;padding:3px 10px;border-radius:6px;font-weight:600}
+.atag-hot{background:#fef3c7;color:#92400e}.atag-new{background:#dcfce7;color:#166534}.atag-limit{background:#fee2e2;color:#991b1b}
+.act-footer{display:flex;justify-content:space-between;align-items:center;margin-top:12px;padding-top:12px;border-top:1px dashed var(--gray-200)}
+.act-price{font-size:18px;font-weight:800;color:var(--red);display:flex;align-items:baseline;gap:4px}
+.act-price .old{font-size:11px;color:var(--gray-400);text-decoration:line-through;font-weight:400}
+.comm-bar{background:linear-gradient(90deg,#fef3c7,#fce7f3);border:1px solid #fde68a;border-radius:12px;padding:12px 18px;display:flex;align-items:center;gap:10px;font-size:12px;color:#92400e;margin-bottom:16px}
+.type-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:12px;margin-bottom:16px}
+.type-card{background:var(--gray-50);border:2.5px solid var(--gray-200);border-radius:var(--radius);padding:18px 12px;text-align:center;cursor:pointer;transition:all .2s}
+.type-card:hover{border-color:var(--blue-light)}
+.type-card.selected{border-color:var(--blue);background:#eff6ff;box-shadow:0 0 0 3px rgba(26,86,219,.1)}
+.type-card .t-emoji{font-size:32px}
+.type-card .t-name{font-size:13px;font-weight:600;margin-top:6px;color:var(--gray-700)}
+.type-card-add{background:transparent;border:2.5px dashed var(--gray-300);display:flex;flex-direction:column;align-items:center;justify-content:center;color:var(--gray-400);cursor:pointer;transition:all .2s;padding:18px 12px;border-radius:var(--radius)}
+.type-card-add:hover{border-color:var(--blue);color:var(--blue);background:#fafbff}
+.stat-grid2{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:14px}
+.stat-card{background:#fff;border-radius:12px;padding:20px 16px;text-align:center;border:1px solid var(--gray-100)}
+.sc-val{font-size:26px;font-weight:800;color:var(--blue)}
+.sc-lbl{font-size:11px;color:var(--gray-500);margin-top:4px}
+.sc-ch{font-size:12px;font-weight:600;margin-top:4px}.sc-up{color:var(--green)}.sc-down{color:var(--red)}
+.profile{background:linear-gradient(135deg,var(--blue),var(--purple));color:#fff;border-radius:20px;padding:32px;text-align:center;margin-bottom:20px}
+.menu-list{background:#fff;border-radius:16px;overflow:hidden;border:1px solid var(--gray-200)}
+.menu-item{display:flex;align-items:center;padding:16px 20px;border-bottom:1px solid var(--gray-100);cursor:pointer;transition:background .15s}
+.menu-item:last-child{border-bottom:none}
+.menu-item:active{background:var(--gray-50)}
+.menu-icon{font-size:22px;margin-right:14px}
+.menu-text{flex:1;font-size:14px;font-weight:500}
+.menu-arr{color:var(--gray-300);font-size:16px}
+.empty-s{text-align:center;padding:40px;color:var(--gray-400)}
+.empty-s .ei{font-size:48px;margin-bottom:10px}
+.empty-s .et{font-size:14px;font-weight:600}
+
+/* Toast */
+.toast{position:fixed;top:24px;left:50%;transform:translateX(-50%) translateY(-24px);background:rgba(17,24,39,.92);color:#fff;padding:12px 28px;border-radius:14px;font-size:13px;z-index:99999;opacity:0;pointer-events:none;transition:all .3s;backdrop-filter:blur(8px)}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+/* Modal - 居中 */
+.modal-over{position:fixed;inset:0;background:rgba(0,0,0,.45);display:flex;align-items:center;justify-content:center;z-index:99998;opacity:0;pointer-events:none;transition:opacity .25s}
+.modal-over.show{opacity:1;pointer-events:auto}
+.modal-pn{background:#fff;border-radius:24px;padding:28px;width:92%;max-width:520px;max-height:85vh;overflow-y:auto;overflow-x:clip;transform:scale(.94);transition:transform .25s cubic-bezier(.4,0,.2,1);box-shadow:0 20px 60px rgba(0,0,0,.2);clip-path:inset(0 0 0 0 round 24px)}
+.modal-over.show .modal-pn{transform:scale(1)}
+.modal-pn.lg{max-width:720px}
+.modal-hd{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px}
+.modal-title{font-size:18px;font-weight:700}
+.modal-close{font-size:22px;color:var(--gray-400);cursor:pointer;transition:.2s}
+.modal-close:hover{color:var(--gray-700)}
+
+.chart-placeholder{background:var(--gray-50);border-radius:12px;height:200px;display:flex;align-items:center;justify-content:center;color:var(--gray-400);border:2px dashed var(--gray-200);font-size:13px}
+
+/* V7 学生端新增：店铺列表卡片 */
+.shop-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:18px}
+.shop-card{background:#fff;border-radius:16px;overflow:hidden;border:1px solid var(--gray-200);cursor:pointer;transition:all .25s;display:flex;flex-direction:column}
+.shop-card:hover{box-shadow:0 8px 32px rgba(0,0,0,.1);transform:translateY(-4px);border-color:var(--blue)}
+.shop-cover{height:100px;display:flex;align-items:center;justify-content:center;font-size:44px;position:relative}
+.shop-cover .sc-dist{position:absolute;bottom:10px;right:14px;background:rgba(0,0,0,.55);color:#fff;padding:2px 10px;border-radius:8px;font-size:11px;font-weight:600}
+.shop-info{padding:16px 18px;flex:1;display:flex;flex-direction:column}
+.shop-info .si-row{display:flex;align-items:center;gap:10px;margin-bottom:6px}
+.shop-info .si-name{font-size:16px;font-weight:700;color:var(--gray-900)}
+.shop-info .si-type{font-size:11px;background:var(--gray-100);padding:2px 8px;border-radius:6px;color:var(--gray-500)}
+.shop-info .si-addr{font-size:12px;color:var(--gray-500);display:flex;align-items:center;gap:4px;margin-bottom:8px}
+.shop-info .si-desc{font-size:12px;color:var(--gray-500);line-height:1.5;flex:1;margin-bottom:8px}
+.shop-tags{display:flex;gap:6px;flex-wrap:wrap}
+.shop-tags .st{padding:2px 8px;border-radius:6px;font-size:10px;font-weight:600}
+
+/* 促销商品卡片 */
+.deal-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:14px}
+.deal-card{background:#fff;border-radius:14px;border:1px solid var(--gray-200);overflow:hidden;transition:all .2s;cursor:pointer}
+.deal-card:hover{border-color:var(--orange);box-shadow:0 4px 18px rgba(245,158,11,.15)}
+.deal-card .dc-top{display:flex;align-items:center;padding:14px 16px 8px;gap:10px}
+.dc-shop-avatar{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:700;color:#fff;flex-shrink:0}
+.dc-shop-name{font-size:13px;font-weight:600}
+.dc-dist{font-size:11px;color:var(--gray-400)}
+.deal-card .dc-body{padding:0 16px 14px}
+.dc-price-row{display:flex;align-items:baseline;gap:8px;margin-bottom:6px}
+.dc-now{font-size:26px;font-weight:800;color:var(--red)}
+.dc-old{font-size:13px;color:var(--gray-400);text-decoration:line-through}
+.dc-title{font-size:14px;font-weight:600;color:var(--gray-900);margin-bottom:4px}
+.dc-deal{font-size:12px;color:var(--gray-500)}
+.dc-tags{display:flex;gap:6px;margin-top:8px}
+
+/* 导航按钮 */
+.nav-btn{display:inline-flex;align-items:center;gap:4px;padding:6px 14px;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;transition:all .2s;border:1.5px solid var(--green);color:var(--green);background:#f0fdf4}
+.nav-btn:hover{background:var(--green);color:#fff;transform:translateY(-1px)}
+
+/* V7 实时聊天样式 */
+.chat-panel{display:flex;flex-direction:column;height:480px;max-height:70vh}
+.chat-msgs{flex:1;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:10px;background:var(--gray-50);border-radius:12px}
+.chat-bub{max-width:76%;padding:10px 14px;border-radius:16px;font-size:13px;line-height:1.6;position:relative;animation:cbIn .2s ease-out}
+@keyframes cbIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+.cb-left{align-self:flex-start;background:#fff;border:1px solid var(--gray-200);border-bottom-left-radius:4px}
+.cb-right{align-self:flex-end;background:var(--blue);color:#fff;border-bottom-right-radius:4px}
+.cb-shop{align-self:flex-start;background:#eff6ff;border:1.5px solid #bfdbfe;border-bottom-left-radius:4px}
+.cb-meta{font-size:10px;opacity:.6;margin-top:4px;display:flex;gap:10px}
+.chat-input-row{display:flex;gap:8px;margin-top:12px}
+.chat-input-row input{flex:1;padding:10px 14px;border:1.5px solid var(--gray-200);border-radius:24px;font-size:13px;outline:none}
+.chat-input-row input:focus{border-color:var(--blue)}
+.chat-input-row .btn{border-radius:24px}
+.conv-item{cursor:pointer;padding:14px 18px;border-bottom:1px solid var(--gray-100);display:flex;align-items:center;gap:12px;transition:.15s}
+.conv-item:hover{background:var(--gray-50)}
+.conv-item:active{background:#eff6ff}
+.conv-item .ci-unread{background:var(--red);color:#fff;font-size:10px;width:18px;height:18px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;margin-left:auto}
+.contact-btn{display:inline-flex;align-items:center;gap:6px;padding:10px 20px;border-radius:12px;font-size:14px;font-weight:700;cursor:pointer;transition:all .2s;background:linear-gradient(135deg,#1A56DB,#6366f1);color:#fff;border:none;width:100%;justify-content:center;margin-top:4px}
+.contact-btn:hover{transform:translateY(-2px);box-shadow:0 6px 20px rgba(26,86,219,.35)}
+
+/* 登录弹窗 */
+.login-shop-item{padding:10px;border-radius:10px;cursor:pointer;transition:all .15s;margin-bottom:4px}
+.login-shop-item:hover{background:var(--gray-50)}
+
+@media(max-width:768px){
+  .grid-2,.grid-3,.grid-4{grid-template-columns:1fr}
+  .act-grid,.product-grid{grid-template-columns:1fr}
+  .hero{padding:24px 20px 20px}
+  .container{padding:14px 12px 48px}
+  .topbar-inner{padding:8px 12px}
+  .modal-pn{width:95%;padding:20px}
+}
+</style>
+</head>
+<body>
+
+<div class="site-header">
+<div class="topbar">
+  <div class="topbar-inner">
+    <div style="display:flex;align-items:center;gap:10px;">
+      <div class="brand">店小满<span class="dot">·</span><span class="sub">学区AI促销平台</span></div>
+      <div class="school-sel" onclick="openModal('schoolModal')">🏫 <span id="curSchool">东北大学</span> ▾</div>
+    </div>
+    <div style="display:flex;align-items:center;gap:8px;">
+      <span id="headerUser" style="font-size:12px;font-weight:600;color:var(--gray-500);cursor:pointer" onclick="openModal('loginModal')">👤 未登录</span>
+      <div class="role-sw" id="roleSw" style="display:none"><button class="role-btn active" id="btnM" onclick="switchRole('merchant')">商户端</button><button class="role-btn" id="btnS" onclick="switchRole('student')">学生端</button></div>
+      <span style="font-size:20px;cursor:pointer">🔔</span>
+    </div>
+  </div>
+</div>
+
+<div class="tabnav" id="tnM"><div class="tabnav-inner">
+  <div class="tab-i active" data-p="m-home" onclick="navTab(this)">🏠 首页</div>
+  <div class="tab-i" data-p="m-shop" onclick="navTab(this)">⚙️ 店铺</div>
+  <div class="tab-i" data-p="m-market" onclick="navTab(this)">✍️ AI营销</div>
+  <div class="tab-i" data-p="m-pricing" onclick="navTab(this)">💡 智能定价</div>
+  <div class="tab-i" data-p="m-salesinfo" onclick="navTab(this)">🏷️ 售卖信息</div>
+  <div class="tab-i" data-p="m-calendar" onclick="navTab(this)">📅 学区日历</div>
+  <div class="tab-i" data-p="m-service" onclick="navTab(this)">💬 AI客服</div>
+  <div class="tab-i" data-p="m-chat" onclick="navTab(this)">📩 客户消息</div>
+  <div class="tab-i" data-p="m-report" onclick="navTab(this)">📊 报表</div>
+  <div class="tab-i" data-p="m-mine" onclick="navTab(this)">👤 我的</div>
+</div></div>
+<div class="tabnav" id="tnS" style="display:none"><div class="tabnav-inner">
+  <div class="tab-i active" data-p="s-deals" onclick="navTab(this)">🔥 今日促销</div>
+  <div class="tab-i" data-p="s-shops" onclick="navTab(this)">🏪 附近店铺</div>
+  <div class="tab-i" data-p="s-promo" onclick="navTab(this)">📣 推广活动</div>
+  <div class="tab-i" data-p="s-chat" onclick="navTab(this)">💬 消息</div>
+  <div class="tab-i" data-p="s-orders" onclick="navTab(this)">🛒 订单</div>
+  <div class="tab-i" data-p="s-mine" onclick="navTab(this)">👤 我的</div>
+</div></div>
+</div><!-- /site-header -->
+
+<div class="container" id="mainContainer" style="display:none">
+
+<!-- ==================== 商户端 ==================== -->
+
+<!-- 首页 -->
+<div class="page active" id="m-home">
+  <div class="no-prod-warn" id="warn-home" style="display:none"><div style="background:#fff3cd;border:1px solid #ffc107;border-radius:12px;padding:14px 18px;display:flex;align-items:center;gap:12px;margin-bottom:16px"><span style="font-size:22px;flex-shrink:0">⚠️</span><div style="flex:1"><div style="font-size:13px;font-weight:600;color:#856404">还没有添加产品</div><div style="font-size:12px;color:#b08d3a">请先在<b>店铺</b>里添加产品，再进行智能定价/AI营销/售卖信息查看</div></div><button class="btn btn-primary btn-sm" style="white-space:nowrap;flex-shrink:0" onclick="navTab(getTab('m-shop'))">去添加 →</button></div></div>
+  <div class="info-box">
+    <strong>📊 数据来源说明</strong><br>
+    店小满通过 <b>接入微信支付/支付宝商户API</b> 自动同步您的订单数据（需您在商户后台授权）。对于线下现金交易，您可以在「报表」页面手动录入。<br>
+    <span class="note">💡 我们正在申请微信支付和支付宝的服务商资质，届时可实现一键授权接入。</span>
+  </div>
+  <div class="hero">
+    <h2>📚 <span id="heroS">东北大学</span> · 学区动态</h2>
+    <p>距离 <b>期末考试周</b> 2天 · AI已更新营销建议</p>
+    <div class="hero-stats" id="heroStats">
+      <div class="hero-stat"><div class="v" id="heroTodayRev">¥2,156</div><div class="l">今日营业额</div></div>
+      <div class="hero-stat"><div class="v" id="heroTodayOrd">83</div><div class="l">今日订单</div></div>
+      <div class="hero-stat"><div class="v">+18%</div><div class="l">较上周</div></div>
+      <div class="hero-stat"><div class="v">3</div><div class="l">AI提醒</div></div>
+    </div>
+  </div>
+  <div class="card-head"><div class="card-title">📅 最近的学区节点</div><div class="card-more" onclick="navTab(getTab('m-calendar'))">全部节点 ›</div></div>
+  <div class="grid-2">
+    <div class="cal-card">
+      <div class="cal-badge" style="background:var(--red)">⚠️ 重要</div>
+      <div class="cal-date">6.20</div>
+      <div class="cal-title">期末考试周 (6.20-7.4)</div>
+      <div class="cal-desc">学生客流 <b style="color:var(--red)">↓35%</b> (日间)，夜宵 <b style="color:var(--green)">↑50%</b>。建议：夜宵品增50%，下午茶减30%。</div>
+      <div class="cal-actions">
+        <button class="btn btn-primary btn-sm" onclick="navTab(getTab('m-market'))">看方案</button>
+        <button class="btn btn-ghost btn-sm" onclick="remind('期末考试周','6.20')">⏰ 提醒</button>
+      </div>
+    </div>
+    <div class="cal-card">
+      <div class="cal-badge" style="background:var(--green)">🚀 开学季</div>
+      <div class="cal-date">9.01</div>
+      <div class="cal-title">开学季营销倒计时 73天</div>
+      <div class="cal-desc">去年开学3天 ¥24,580 (平日6倍)。建议提前7天备货。</div>
+      <div class="cal-actions">
+        <button class="btn btn-green btn-sm" onclick="navTab(getTab('m-calendar'))">设置节点</button>
+        <button class="btn btn-ghost btn-sm" onclick="remind('开学季','9.01')">⏰ 提醒</button>
+      </div>
+    </div>
+  </div>
+  <div class="card-head"><div class="card-title">⚡ AI工具</div></div>
+  <div class="grid-4">
+    <div class="func-card fc-purple" onclick="navTab(getTab('m-market'))"><div class="emoji">✍️</div><div class="name">AI营销文案</div><div class="desc">基于产品自动生成</div></div>
+    <div class="func-card fc-orange" onclick="navTab(getTab('m-pricing'))"><div class="emoji">💡</div><div class="name">智能定价</div><div class="desc">时间+竞品+库存+天气</div></div>
+    <div class="func-card fc-green" onclick="navTab(getTab('m-calendar'))"><div class="emoji">📅</div><div class="name">学区日历</div><div class="desc">自定义时间节点</div></div>
+    <div class="func-card fc-red" onclick="navTab(getTab('m-service'))"><div class="emoji">💬</div><div class="name">AI客服</div><div class="desc">自动回复学生</div></div>
+  </div>
+</div>
+
+<!-- AI营销 — V7改为上下分栏 -->
+<div class="page" id="m-market">
+  <div class="no-prod-warn" id="warn-market" style="display:none"><div style="background:#fff3cd;border:1px solid #ffc107;border-radius:12px;padding:14px 18px;display:flex;align-items:center;gap:12px;margin-bottom:16px"><span style="font-size:22px;flex-shrink:0">⚠️</span><div style="flex:1"><div style="font-size:13px;font-weight:600;color:#856404">还没有添加产品</div><div style="font-size:12px;color:#b08d3a">请先在<b>店铺</b>里添加产品，否则无法使用AI营销生成文案</div></div><button class="btn btn-primary btn-sm" style="white-space:nowrap;flex-shrink:0" onclick="navTab(getTab('m-shop'))">去添加 →</button></div></div>
+  <div class="info-box"><strong>✍️ AI营销文案生成器</strong> — 文案基于你的真实产品+学区时间节点+活动主题自动生成。生成后可一键同步到售卖信息。</div>
+  
+  <!-- 上半部分：选择区（纯纵向堆叠） -->
+  <div class="card" style="margin-bottom:20px">
+    <div class="card-title" style="margin-bottom:16px">🎯 营销活动配置</div>
+    <div class="form-group"><label class="form-label">🎨 活动主题</label>
+      <select class="form-select" id="mkTopic" onchange="toggleCustom()">
+        <option value="finals">期末考试·熬夜套餐</option>
+        <option value="opening">开学季·新生欢迎</option>
+        <option value="graduation">毕业季·告别特惠</option>
+        <option value="weekend">周末·闺蜜基友套餐</option>
+        <option value="midterm">期中考·加油包</option>
+        <option value="military">军训季·清凉解暑</option>
+        <option value="custom">✏️ 自定义主题...</option>
+      </select>
+      <div id="customBox" style="display:none;margin-top:8px;">
+        <input type="text" class="form-input" id="customTopic" placeholder="输入自定义主题，如：店庆周年、双十一大促...">
+      </div>
+    </div>
+    <div class="form-group"><label class="form-label">📅 活动时间</label>
+      <select class="form-select" id="mkTime"><option>今晚起</option><option>本周末</option><option>下周</option><option>本月</option></select>
+    </div>
+    <div class="form-group"><label class="form-label">🎁 优惠方式</label>
+      <select class="form-select" id="mkDeal" onchange="toggleDealCustom()">
+        <option value="half">第二杯半价</option><option value="student8">学生证8折</option><option value="full20off5">满20减5</option><option value="bogo">买一送一</option><option value="flash9">特价¥9.9</option><option value="custom">✏️ 自定义优惠...</option>
+      </select>
+      <div id="dealCustomBox" style="display:none;margin-top:8px;">
+        <input type="text" class="form-input" id="customDeal" placeholder="输入自定义优惠，如：全场7折、第二份才1元...">
+      </div>
+    </div>
+    <div class="form-group" style="margin-bottom:0">
+      <label class="form-label">🎯 选择推广产品</label>
+      <div style="font-size:11px;color:var(--gray-500);margin-bottom:8px;background:#fefce8;border:1px solid #fde68a;border-radius:8px;padding:8px 12px">💡 推广产品信息同步于「店铺-产品清单」中的产品。若无对应产品，请移步 <b>「店铺→产品清单」</b> 添加。</div>
+      <div id="marketTags"></div>
+    </div>
+    <button class="btn btn-purple" style="width:100%;padding:14px;font-size:15px;margin-top:16px" onclick="genCopy()">✨ 一键生成 AI 文案</button>
+  </div>
+  
+  <!-- 下半部分：结果区 -->
+  <div id="outArea">
+    <div class="out-card green"><div class="out-label" style="color:#065f46">📝 点击上方按钮生成文案</div><div class="out-text">AI将为你的每次活动生成3套专属文案：朋友圈 · 小红书 · 群发消息。<br>生成后可一键"同步到售卖信息"。</div></div>
+  </div>
+</div>
+
+<!-- 智能定价 — V7增加库存输入+天气信息 -->
+<div class="page" id="m-pricing">
+  <div class="no-prod-warn" id="warn-pricing" style="display:none"><div style="background:#fff3cd;border:1px solid #ffc107;border-radius:12px;padding:14px 18px;display:flex;align-items:center;gap:12px;margin-bottom:16px"><span style="font-size:22px;flex-shrink:0">⚠️</span><div style="flex:1"><div style="font-size:13px;font-weight:600;color:#856404">还没有添加产品</div><div style="font-size:12px;color:#b08d3a">请先在<b>店铺</b>里添加产品，否则无法使用智能定价</div></div><button class="btn btn-primary btn-sm" style="white-space:nowrap;flex-shrink:0" onclick="navTab(getTab('m-shop'))">去添加 →</button></div></div>
+  <div class="info-box"><strong>💡 AI定价引擎 V2</strong> — 建议价 = 基准价 × 时间系数 × 竞争系数 × 库存系数 × 天气系数。实时天气+库存数据驱动。</div>
+  
+  <!-- 天气信息卡片 -->
+  <div class="weather-card">
+    <div class="w-icon" id="weatherIcon">☀️</div>
+    <div class="w-info">
+      <div class="w-temp" id="weatherTemp">28°C</div>
+      <div class="w-desc" id="weatherDesc">晴转多云 · 体感30°C · 湿度65%</div>
+      <div class="w-tip" id="weatherTip">📈 冷饮需求↑20% · 建议主推冰饮</div>
+    </div>
+    <div class="w-form">
+      <span style="font-size:11px;color:#0369a1;font-weight:600">手动调天气:</span>
+      <select id="weatherType" onchange="updateWeather()">
+        <option value="sunny" selected>☀️ 晴天</option>
+        <option value="cloudy">⛅ 多云</option>
+        <option value="rainy">🌧️ 雨天</option>
+        <option value="snowy">❄️ 雪天</option>
+        <option value="hot">🔥 高温</option>
+        <option value="cold">🥶 寒潮</option>
+      </select>
+      <input type="number" id="weatherTempIn" value="28" min="-20" max="45" style="width:70px" onchange="updateWeather()" placeholder="°C">
+      <span style="font-size:11px;color:#0369a1">°C</span>
+    </div>
+  </div>
+  
+  <div class="pricing-ctx">
+    <div style="font-size:13px;font-weight:700;color:var(--blue);margin-bottom:8px">📋 当前定价上下文</div>
+    <div class="ctx-row">
+      <div>📅 <strong>节点:</strong> <span style="font-weight:700;color:var(--blue)">期末考试周</span></div>
+      <div>📊 <strong>客流:</strong> <span style="color:var(--red)">↓35%</span>(日) <span style="color:var(--green)">↑50%</span>(夜)</div>
+      <div>🏪 <strong>商圈均价:</strong> 饮品¥13-16 | 轻食¥18-22</div>
+      <div id="pricingWeatherCtx">🌡️ <strong>天气:</strong> 晴28℃(冷饮↑)</div>
+    </div>
+  </div>
+  <div id="pricingList"></div>
+</div>
+
+<!-- 学区日历 -->
+<div class="page" id="m-calendar">
+  <div class="card-head"><div class="card-title">📅 学区时间节点</div><button class="btn btn-primary btn-sm" onclick="openModal('nodeModal')">+ 新增节点</button></div>
+  <div id="calList"></div>
+</div>
+
+<!-- AI客服 -->
+<div class="page" id="m-service">
+  <div class="card-head"><div class="card-title">💬 AI客服</div><div><span style="width:8px;height:8px;border-radius:50%;background:var(--green);display:inline-block;animation:pulse 1.5s infinite"></span> <span style="font-size:12px;color:var(--green);font-weight:600">运行中</span></div></div>
+  <div class="card" style="max-width:600px;margin:0 auto">
+    <div style="background:var(--gray-50);border-radius:12px;padding:20px">
+      <div style="font-size:12px;color:var(--gray-500);font-weight:600;margin-bottom:10px">📱 模拟对话</div>
+      <div style="background:#eff6ff;border-radius:8px;padding:10px 14px;margin:8px 0;max-width:80%;font-size:13px">👤 今天还开门吗？</div>
+      <div style="background:#dcfce7;border-radius:8px;padding:10px 14px;margin:8px 0;margin-left:auto;max-width:80%;font-size:13px">🤖 在的！营业到23:30~ 期末周珍珠奶茶第二杯半价！</div>
+    </div>
+    <div class="grid-4" style="margin-top:16px">
+      <div class="func-card" onclick="showT('话风: 活泼')"><div class="emoji">😊</div><div class="name">活泼</div></div>
+      <div class="func-card" onclick="showT('话风: 专业')"><div class="emoji">👔</div><div class="name">专业</div></div>
+      <div class="func-card" onclick="showT('话风: 亲切')"><div class="emoji">🌸</div><div class="name">亲切</div></div>
+      <div class="func-card" onclick="showT('话风: 幽默')"><div class="emoji">😂</div><div class="name">幽默</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- 客户消息（商户端） -->
+<div class="page" id="m-chat">
+  <div class="info-box"><strong>📩 客户消息</strong> — 学生通过店铺详情页「联系商家」发来的消息。实时接收+回复，增强到店转化。</div>
+  <div class="grid-2">
+    <div style="background:#fff;border-radius:var(--radius);border:1px solid var(--gray-200);overflow:hidden">
+      <div class="card-head" style="padding:16px"><div class="card-title">💬 会话列表</div><span style="font-size:11px;color:var(--gray-500)" id="convCount">0条消息</span></div>
+      <div id="convList" style="max-height:360px;overflow-y:auto">
+        <div class="record-empty">暂无学生消息 · 等待学生联系</div>
+      </div>
+    </div>
+    <div style="background:#fff;border-radius:var(--radius);border:1px solid var(--gray-200)">
+      <div class="card-head" style="padding:16px"><div class="card-title" id="activeConvTitle">📩 点击左侧会话</div></div>
+      <div class="chat-panel" style="height:360px">
+        <div class="chat-msgs" id="mChatMsgs"><div style="text-align:center;color:var(--gray-400);font-size:13px;padding:20px">👆 请选择左侧学生会话</div></div>
+        <div class="chat-input-row" style="padding:0 8px">
+          <input type="text" id="mChatInput" placeholder="回复消息..." onkeydown="if(event.key==='Enter')sendMerchantMsg()">
+          <button class="btn btn-primary btn-sm" onclick="sendMerchantMsg()">发送</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 店铺设置 -->
+<div class="page" id="m-shop">
+  <div class="card-head"><div class="card-title">⚙️ 店铺设置</div></div>
+  <div class="card">
+    <div class="grid-2" style="margin-bottom:16px">
+      <div class="form-group"><label class="form-label">🏪 店铺名称</label><input type="text" class="form-input" id="shopName" value="老张的茶"></div>
+      <div class="form-group"><label class="form-label">📍 位置</label>
+        <select class="form-select" id="shopLoc" onchange="toggleLocCustom()">
+          <option>东北大学 · 南门</option><option>东北大学 · 东门</option><option>东北大学 · 西门</option>
+          <option>辽宁大学 · 崇山校区</option><option>沈阳师范大学 · 正门</option>
+          <option>沈阳工业大学 · 中央校区</option><option>沈阳航空航天大学 · 南门</option>
+          <option>沈阳理工大学 · 东门</option><option>沈阳建筑大学 · 正门</option>
+          <option>沈阳农业大学 · 南门</option><option>沈阳药科大学 · 校本部</option>
+          <option>大连理工大学 · 凌水校区</option><option>大连海事大学 · 正门</option>
+          <option>吉林大学 · 前卫校区</option><option>哈尔滨工业大学 · 一校区</option>
+          <option>北京大学 · 燕园</option><option>清华大学 · 东门</option>
+          <option>复旦大学 · 邯郸校区</option><option>上海交通大学 · 闵行校区</option>
+          <option>浙江大学 · 紫金港校区</option><option>南京大学 · 仙林校区</option>
+          <option>武汉大学 · 珞珈山</option><option>中山大学 · 南校区</option>
+          <option>四川大学 · 望江校区</option><option>西安交通大学 · 兴庆校区</option>
+          <option value="custom">✏️ 自定义位置...</option>
+        </select>
+        <input type="text" class="form-input" id="shopLocCustom" placeholder="输入学校+位置，如：中国科学技术大学·东区" style="display:none;margin-top:8px">
+        <div style="display:flex;align-items:center;gap:8px;margin-top:10px">
+          <button class="btn btn-ghost btn-sm" onclick="getCurrentLocation()" id="locBtn" style="display:flex;align-items:center;gap:4px">📍 使用当前位置</button>
+          <span style="font-size:11px;color:var(--gray-400)" id="locHint">授权后自动填充地址</span>
+        </div>
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">🏷️ 商户类型（选择后下方显示推荐产品）</label>
+      <div class="type-grid" id="typeGrid"></div>
+    </div>
+    <div class="form-group"><label class="form-label">📦 产品清单（点击添加/移除，点×删除）</label>
+      <div id="shopTags"></div>
+      <div style="margin-top:10px;display:flex;gap:10px;align-items:center">
+        <input type="text" class="form-input" id="newProdName" placeholder="新产品名称" style="flex:1">
+        <input type="number" class="form-input" id="newProdPrice" placeholder="价格" style="width:100px" min="0" step="0.1">
+        <button class="btn btn-primary" onclick="addProduct()">添加</button>
+      </div>
+    </div>
+    <div class="form-label">🖼️ 产品展示（点击图片从本地上传）</div>
+    <div class="product-grid" id="productGallery"></div>
+    <button class="btn btn-green" style="width:100%;margin-top:20px;padding:14px;font-size:15px;" onclick="syncMerchantToShop();showT('✅ 已保存！学生端同步更新')">💾 保存店铺信息</button>
+  </div>
+</div>
+
+<!-- ============ V7 新品：售卖信息 ============ -->
+<div class="page" id="m-salesinfo">
+  <div class="no-prod-warn" id="warn-salesinfo" style="display:none"><div style="background:#fff3cd;border:1px solid #ffc107;border-radius:12px;padding:14px 18px;display:flex;align-items:center;gap:12px;margin-bottom:16px"><span style="font-size:22px;flex-shrink:0">⚠️</span><div style="flex:1"><div style="font-size:13px;font-weight:600;color:#856404">还没有添加产品</div><div style="font-size:12px;color:#b08d3a">请先在<b>店铺</b>里添加产品，否则无法查看售卖信息</div></div><button class="btn btn-primary btn-sm" style="white-space:nowrap;flex-shrink:0" onclick="navTab(getTab('m-shop'))">去添加 →</button></div></div>
+  <div class="info-box"><strong>🏷️ 售卖信息面板</strong> — 左侧管理你的营销推广产品，右侧查看全部产品报价。AI营销生成的文案可一键同步到此处。</div>
+  
+  <!-- 第一部分：营销产品推广 -->
+  <div class="sales-section">
+    <div class="ss-head">
+      <span class="ss-icon">📢</span>
+      <span class="ss-title">营销产品推广区</span>
+      <span style="font-size:11px;color:var(--gray-500);margin-left:auto">面向学生端展示</span>
+    </div>
+    <div id="promoList">
+      <div class="record-empty">暂无推广产品 · 在「AI营销」生成文案后点击"同步到售卖信息"</div>
+    </div>
+  </div>
+  
+  <!-- 第二部分：店铺产品报价 -->
+  <div class="sales-section">
+    <div class="ss-head">
+      <span class="ss-icon">📋</span>
+      <span class="ss-title">店铺产品报价表</span>
+      <span style="font-size:11px;color:var(--gray-500);margin-left:auto">实时更新</span>
+    </div>
+    <div id="priceListTable"></div>
+  </div>
+</div>
+
+<!-- 报表 — V7增加手动录入 -->
+<div class="page" id="m-report">
+  <div class="card-head"><div class="card-title">📊 经营报表 (近30天)</div></div>
+  <div class="stat-grid2" style="margin-bottom:20px" id="reportStats">
+    <div class="stat-card"><div class="sc-val">¥48,920</div><div class="sc-lbl">总营收</div><div class="sc-ch sc-up">↑ 18%</div></div>
+    <div class="stat-card"><div class="sc-val">1,847</div><div class="sc-lbl">订单数</div><div class="sc-ch sc-up">↑ 22%</div></div>
+    <div class="stat-card"><div class="sc-val">412</div><div class="sc-lbl">新客户</div><div class="sc-ch sc-up">↑ 47%</div></div>
+    <div class="stat-card"><div class="sc-val">¥26.5</div><div class="sc-lbl">客单价</div><div class="sc-ch sc-up">↑ 5%</div></div>
+  </div>
+  
+  <!-- V7 新品：手动录入表单 -->
+  <div class="card" style="margin-bottom:20px">
+    <div class="card-title" style="margin-bottom:16px">✏️ 手动录入营业额</div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">📅 日期</label><input type="date" class="form-input" id="recDate" value="2026-06-20"></div>
+      <div class="form-group"><label class="form-label">💰 营业额 (元)</label><input type="number" class="form-input" id="recRevenue" placeholder="如: 2156" min="0" step="0.01"></div>
+      <div class="form-group"><label class="form-label">📦 订单数</label><input type="number" class="form-input" id="recOrders" placeholder="如: 83" min="0"></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">📝 备注</label><input type="text" class="form-input" id="recNote" placeholder="如: 期末考试第一天，客流量大"></div>
+    </div>
+    <button class="btn btn-green" onclick="addSalesRecord()">➕ 录入</button>
+  </div>
+  
+  <!-- 录入记录 -->
+  <div class="card">
+    <div class="card-title" style="margin-bottom:16px">📋 录入记录</div>
+    <div style="overflow-x:auto">
+      <table class="record-table">
+        <thead><tr><th>日期</th><th>营业额</th><th>订单数</th><th>客单价</th><th>备注</th><th></th></tr></thead>
+        <tbody id="recordBody">
+          <tr><td colspan="6" class="record-empty">暂无手动录入数据 · 上方表单录入</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+  
+  <div class="card" style="margin-top:16px"><div class="chart-placeholder">📈 营收折线图 (正式版接入 ECharts，包含手动录入+自动同步数据)</div></div>
+</div>
+
+<!-- 我的 -->
+<div class="page" id="m-mine">
+  <div class="profile" id="mProfile"><div style="font-size:48px" id="mProfileEmoji">👨‍🍳</div><div style="font-size:22px;font-weight:700;margin-top:10px" id="mProfileName">张老板</div><div style="font-size:14px;opacity:.85;margin-top:4px" id="mProfileInfo">老张的茶 · 东北大学南门</div></div>
+  <div class="menu-list">
+    <div class="menu-item" onclick="navTab(getTab('m-shop'))"><div class="menu-icon">🏪</div><div class="menu-text">店铺管理</div><div class="menu-arr">›</div></div>
+    <div class="menu-item" onclick="navTab(getTab('m-salesinfo'))"><div class="menu-icon">🏷️</div><div class="menu-text">售卖信息</div><div class="menu-arr">›</div></div>
+    <div class="menu-item" onclick="navTab(getTab('m-report'))"><div class="menu-icon">📊</div><div class="menu-text">经营报表</div><div class="menu-arr">›</div></div>
+  </div>
+</div>
+
+<!-- ==================== 学生端 ==================== -->
+
+<!-- 今日促销 - 跨店铺聚合展示 -->
+<div class="page" id="s-deals">
+  <div class="comm-bar">🎁 <strong>分享赚钱:</strong> 分享给同学，成交后赚 <b>3%~8%</b> 佣金！<span style="margin-left:8px;font-size:11px;opacity:.8">点击商品可跳转对应店铺</span></div>
+  <div style="background:linear-gradient(135deg,#6366f1,#8B5CF6,#ec4899);color:#fff;border-radius:18px;padding:28px 32px;margin-bottom:20px;display:flex;align-items:center;gap:16px;flex-wrap:wrap" id="dealsHero"><div style="flex:1;min-width:200px"><h2 style="font-size:20px;margin-bottom:4px">🔥 今日爆款促销 · <span id="sSchool">东北大学</span>周边</h2><p style="font-size:13px;opacity:.85;margin-bottom:10px" id="dealsHeroSub">每日更新 · 点击卡片查看店铺完整售卖信息</p></div><div style="display:flex;gap:20px;flex-wrap:wrap" id="dsTodayStats"><div style="font-size:13px;opacity:.85">📊 今日 <b>12</b> 个特价商品 · 覆盖 <b>5</b> 家店铺</div></div></div>
+  <div class="card-head"><div class="card-title">⚡ 限时特价商品</div><div class="card-more" onclick="navTab(getTab('s-shops'))">全部店铺 ›</div></div>
+  <div class="deal-grid" id="dealGrid"></div>
+</div>
+
+<!-- 附近店铺列表 -->
+<div class="page" id="s-shops">
+  <div style="background:linear-gradient(135deg,var(--blue),#60a5fa);color:#fff;border-radius:18px;padding:24px 28px;margin-bottom:20px;display:flex;align-items:center;gap:16px;flex-wrap:wrap" id="shopsHero">
+    <div style="flex:1;min-width:200px"><h2 style="font-size:18px;margin-bottom:4px">🏪 <span id="sSchool2">东北大学</span> · 附近店铺</h2><p style="font-size:13px;opacity:.88" id="shopsHeroSub">点击店铺查看完整售卖信息 · 到店导航</p></div>
+  </div>
+  <div class="shop-grid" id="shopGrid"></div>
+</div>
+
+<div class="page" id="s-promo">
+  <div style="background:linear-gradient(135deg,#1A56DB,#6366f1,#8B5CF6);color:#fff;border-radius:18px;padding:28px 32px;margin-bottom:20px">
+    <h2 style="font-size:20px;margin-bottom:4px">📣 推广活动</h2><p style="font-size:12px;opacity:.85">分享给同学，对方下单你赚佣金 — 越分享越赚钱</p>
+    <div class="stat-grid2" style="margin-top:20px">
+      <div class="stat-card" style="background:rgba(255,255,255,.15);border-color:transparent"><div class="sc-val" style="color:#fff">¥128.50</div><div class="sc-lbl" style="color:rgba(255,255,255,.75)">累计佣金</div></div>
+      <div class="stat-card" style="background:rgba(255,255,255,.15);border-color:transparent"><div class="sc-val" style="color:#fff">47</div><div class="sc-lbl" style="color:rgba(255,255,255,.75)">分享次数</div></div>
+      <div class="stat-card" style="background:rgba(255,255,255,.15);border-color:transparent"><div class="sc-val" style="color:#fff">23</div><div class="sc-lbl" style="color:rgba(255,255,255,.75)">成交订单</div></div>
+      <div class="stat-card" style="background:rgba(255,255,255,.15);border-color:transparent"><div class="sc-val" style="color:#fff">¥5.59</div><div class="sc-lbl" style="color:rgba(255,255,255,.75)">平均客单价</div></div>
+    </div>
+  </div>
+  <div class="grid-2">
+    <div>
+      <div class="card-head"><div class="card-title">🔥 正在推广的活动</div></div>
+      <div class="card" style="margin-bottom:12px">
+        <div class="act-shop" style="margin-bottom:12px"><div class="act-shop-avatar" style="background:linear-gradient(135deg,#f97316,#fb923c)">🧋</div><div class="act-shop-name" style="font-size:14px">老张的茶·期末套餐</div><div style="margin-left:auto;font-size:11px;color:var(--gray-500)">推广中</div></div>
+        <div style="font-size:14px;font-weight:600;color:var(--gray-900);margin-bottom:6px">买一送一！珍珠奶茶送你，室友第二杯半价</div>
+        <div style="font-size:12px;color:var(--gray-500);line-height:1.6;margin-bottom:10px">已分享 <b>23次</b> · 成交 <b>8单</b> · 你赚了 <b style="color:var(--green)">¥4.80</b></div>
+        <div style="display:flex;gap:8px"><button class="btn btn-primary btn-sm" onclick="shareIt()">📤 继续推广</button><span style="font-size:11px;color:var(--gray-400);align-self:center">每次分享约赚¥0.60</span></div>
+      </div>
+      <div class="card">
+        <div class="act-shop" style="margin-bottom:12px"><div class="act-shop-avatar" style="background:linear-gradient(135deg,#10b981,#34d399)">🍉</div><div class="act-shop-name" style="font-size:14px">李姐水果铺·夏日特惠</div><div style="margin-left:auto;font-size:11px;color:var(--gray-500)">新上线</div></div>
+        <div style="font-size:14px;font-weight:600;color:var(--gray-900);margin-bottom:6px">西瓜/蜜瓜全场8折！满30再送柠檬水</div>
+        <div style="font-size:12px;color:var(--gray-500);line-height:1.6;margin-bottom:10px">已分享 <b>5次</b> · 成交 <b>2单</b> · 你赚了 <b style="color:var(--green)">¥2.40</b></div>
+        <div style="display:flex;gap:8px"><button class="btn btn-green btn-sm" onclick="shareIt()">📤 开始推广</button><span style="font-size:11px;color:var(--gray-400);align-self:center">每次分享约赚¥1.20</span></div>
+      </div>
+      <div class="card" style="text-align:center;margin-top:14px">
+        <div style="font-size:15px;font-weight:700;margin-bottom:6px">🔗 你的专属推广链接</div>
+        <div style="background:var(--gray-50);border-radius:10px;padding:10px 16px;font-size:11px;color:var(--blue);font-family:monospace;word-break:break-all;margin-bottom:10px">https://店小满.cn/s/小明?ref=share_2026</div>
+        <div style="display:flex;gap:8px;justify-content:center"><button class="btn btn-primary btn-sm" onclick="showT('✅ 已复制')">📋 复制链接</button><button class="btn btn-purple btn-sm" onclick="showT('📱 海报已生成')">🎨 生成海报</button></div>
+      </div>
+    </div>
+    <div>
+      <div class="card-head"><div class="card-title">💰 我的收益明细</div></div>
+      <div class="card">
+        <table class="record-table">
+          <thead><tr><th>时间</th><th>来源</th><th>佣金</th></tr></thead>
+          <tbody>
+            <tr><td>6/20 14:30</td><td>老张的茶</td><td style="color:var(--green);font-weight:700">+¥0.60</td></tr>
+            <tr><td>6/19 18:15</td><td>李姐水果铺</td><td style="color:var(--green);font-weight:700">+¥1.20</td></tr>
+            <tr><td>6/18 12:05</td><td>老张的茶</td><td style="color:var(--green);font-weight:700">+¥0.60</td></tr>
+            <tr><td>6/15 20:42</td><td>拉福兰州拉面</td><td style="color:var(--green);font-weight:700">+¥1.50</td></tr>
+            <tr><td style="text-align:center;padding:16px;color:var(--gray-400)" colspan="3">··· 更早（5月累计 ¥12.60）···</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="card" style="margin-top:14px">
+        <div class="card-title" style="margin-bottom:14px">🏆 推广达人榜</div>
+        <div style="display:flex;align-items:center;gap:12px;padding:10px 14px;border-radius:10px;margin-bottom:8px;background:linear-gradient(135deg,#fef3c7,#fff7ed)">
+          <span style="font-size:22px;font-weight:800;color:var(--orange)">🥇</span>
+          <div style="flex:1"><div style="font-size:13px;font-weight:600">东大小明</div><div style="font-size:11px;color:var(--gray-500)">23单 · 47次分享</div></div>
+          <span style="font-size:16px;font-weight:800;color:var(--orange)">¥128.50</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:12px;padding:10px 14px;border-radius:10px;margin-bottom:8px;background:#fff">
+          <span style="font-size:22px;font-weight:800;color:var(--gray-400)">🥈</span>
+          <div style="flex:1"><div style="font-size:13px;font-weight:600">化工小刘</div><div style="font-size:11px;color:var(--gray-500)">18单 · 35次分享</div></div>
+          <span style="font-size:14px;font-weight:700;color:var(--gray-700)">¥95.20</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:12px;padding:10px 14px;border-radius:10px;margin-bottom:8px;background:#fff">
+          <span style="font-size:22px;font-weight:800;color:#cd7f32">🥉</span>
+          <div style="flex:1"><div style="font-size:13px;font-weight:600">信管阿杰</div><div style="font-size:11px;color:var(--gray-500)">14单 · 28次分享</div></div>
+          <span style="font-size:14px;font-weight:700;color:var(--gray-700)">¥72.80</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 学生端消息收件箱 -->
+<div class="page" id="s-chat">
+  <div style="background:linear-gradient(135deg,#1A56DB,#6366f1);color:#fff;border-radius:18px;padding:24px 28px;margin-bottom:20px">
+    <h2 style="font-size:18px;margin-bottom:4px">💬 我的消息</h2><p style="font-size:12px;opacity:.85">查看与各个店铺的聊天记录</p>
+  </div>
+  <div style="background:#fff;border-radius:var(--radius);border:1px solid var(--gray-200);overflow:hidden" id="sChatList">
+    <div class="record-empty">暂无消息 · 在「附近店铺」中联系商家即可开始对话</div>
+  </div>
+</div>
+
+<div class="page" id="s-orders">
+  <div class="card-head"><div class="card-title">🛒 我的订单</div></div>
+  <div class="card"><div class="empty-s"><div class="ei">🛒</div><div class="et">暂无订单</div></div></div>
+</div>
+
+<div class="page" id="s-mine">
+  <div class="profile" id="mineProfile"><div style="font-size:48px">😎</div><div style="font-size:22px;font-weight:700;margin-top:10px" id="mineName">东大小明</div><div style="font-size:13px;opacity:.85" id="mineInfo">东北大学 · 信息学院</div></div>
+  <div class="menu-list">
+    <div class="menu-item" onclick="showT('💰 累计佣金 ¥128.50')"><div class="menu-icon">💰</div><div class="menu-text">我的佣金</div><div class="menu-arr">¥128.50</div></div>
+    <div class="menu-item" onclick="showT('📊 已分享 47 次')"><div class="menu-icon">📊</div><div class="menu-text">推广数据</div><div class="menu-arr">47次·23单</div></div>
+  </div>
+</div>
+
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<!-- 学校选择弹窗 -->
+<div class="modal-over" id="schoolModal">
+  <div class="modal-pn lg">
+    <div class="modal-hd"><div class="modal-title">🏫 选择学校</div><div class="modal-close" onclick="closeM('schoolModal')">✕</div></div>
+    <div class="form-group"><input type="text" class="form-input" placeholder="🔍 搜索学校或输入自定义名称..." id="sSearch" oninput="filterS()"></div>
+    <div style="max-height:320px;overflow-y:auto" id="sList"></div>
+    <div style="background:#f0f4ff;border-radius:12px;padding:12px 16px;margin-top:8px">
+      <div style="font-size:12px;font-weight:600;color:var(--blue);margin-bottom:6px">✏️ 没找到你的学校？直接输入：</div>
+      <div style="display:flex;gap:8px">
+        <input type="text" class="form-input" id="customSchool" placeholder="输入学校全名，如：厦门大学、同济大学..." style="flex:1;font-size:13px" onkeydown="if(event.key==='Enter')addCustomSchool()">
+        <button class="btn btn-primary btn-sm" onclick="addCustomSchool()">确认</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 新增节点弹窗 -->
+<div class="modal-over" id="nodeModal">
+  <div class="modal-pn">
+    <div class="modal-hd"><div class="modal-title">📅 新增时间节点</div><div class="modal-close" onclick="closeM('nodeModal')">✕</div></div>
+    <div class="form-group"><label class="form-label">节点名称</label><input type="text" class="form-input" id="nName" placeholder="如: 校运动会"></div>
+    <div class="form-group"><label class="form-label">日期范围</label><input type="text" class="form-input" id="nDate" placeholder="如: 10.15-10.20"></div>
+    <div class="form-group"><label class="form-label">重要程度</label><select class="form-select" id="nLevel"><option value="important">🔴 重要</option><option value="normal">🔵 一般</option><option value="holiday">🟠 假期</option></select></div>
+    <div style="display:flex;gap:10px"><button class="btn btn-primary" style="flex:1" onclick="addNode()">添加</button><button class="btn btn-ghost" style="flex:1" onclick="closeM('nodeModal')">取消</button></div>
+  </div>
+</div>
+
+<!-- 提醒设置弹窗 — V7完善 -->
+<div class="modal-over" id="remindModal">
+  <div class="modal-pn">
+    <div class="modal-hd"><div class="modal-title">⏰ 设置提醒</div><div class="modal-close" onclick="closeM('remindModal')">✕</div></div>
+    <div id="remindBody"></div>
+    <div style="background:var(--gray-50);border-radius:12px;padding:16px;margin:14px 0;font-size:12px;line-height:1.8">
+      <strong>📱 提醒将发送到以下渠道：</strong><br>
+      <div style="display:flex;align-items:flex-start;gap:6px;margin-top:6px"><span style="color:var(--blue);font-weight:700">①</span> <b>浏览器通知</b> — 授权后自动推送桌面提醒</div>
+      <div style="display:flex;align-items:flex-start;gap:6px;margin-top:4px"><span style="color:var(--green);font-weight:700">②</span> <b>微信服务号</b> — 关注「店小满」公众号后接收模板消息</div>
+      <div style="display:flex;align-items:flex-start;gap:6px;margin-top:4px"><span style="color:var(--orange);font-weight:700">③</span> <b>手机日历</b> — 下载 .ics 文件导入系统日历</div>
+      <div style="display:flex;align-items:flex-start;gap:6px;margin-top:4px"><span style="color:var(--purple);font-weight:700">④</span> <b>短信提醒</b> — 重要节点短信通知 (1条/¥0.05)</div>
+    </div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap">
+      <button class="btn btn-primary btn-sm" style="flex:1" onclick="enableNotify()">🔔 开启浏览器通知</button>
+      <button class="btn btn-green btn-sm" style="flex:1" onclick="downloadICS()">📅 导入手机日历</button>
+    </div>
+    <div style="margin-top:10px;text-align:center">
+      <button class="btn btn-ghost btn-sm" style="width:100%" onclick="closeM('remindModal')">稍后再说</button>
+    </div>
+  </div>
+</div>
+
+<!-- 手动调价弹窗 -->
+<div class="modal-over" id="priceModal">
+  <div class="modal-pn">
+    <div class="modal-hd"><div class="modal-title">🔧 手动调整价格</div><div class="modal-close" onclick="closeM('priceModal')">✕</div></div>
+    <div id="priceEditBody"></div>
+    <div style="display:flex;gap:10px"><button class="btn btn-primary" style="flex:1" onclick="savePrice()">保存</button><button class="btn btn-ghost" style="flex:1" onclick="closeM('priceModal')">取消</button></div>
+  </div>
+</div>
+
+<!-- 登录弹窗 -->
+<div class="modal-over show" id="loginModal">
+  <div class="modal-pn" style="max-width:440px">
+    <div class="modal-hd"><div class="modal-title">👋 欢迎使用店小满</div></div>
+    <div style="text-align:center;margin-bottom:20px">
+      <div style="font-size:13px;color:var(--gray-500)">请选择你的身份</div>
+    </div>
+    <div style="display:flex;gap:0;margin-bottom:20px;background:var(--gray-50);border-radius:10px;padding:4px" id="loginTabs">
+      <button style="flex:1;padding:10px;border:none;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;transition:.2s;background:var(--blue);color:#fff" onclick="switchLoginTab('login')" id="tabLogin">登录</button>
+      <button style="flex:1;padding:10px;border:none;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;transition:.2s;background:transparent;color:var(--gray-500)" onclick="switchLoginTab('register')" id="tabRegister">注册</button>
+    </div>
+    <div id="loginForm" style="display:block">
+      <div style="display:flex;gap:12px;margin-bottom:16px" id="loginRoleBtns">
+        <div style="flex:1;background:#fff;border:2px solid var(--gray-200);border-radius:14px;padding:24px 16px;text-align:center;cursor:pointer;transition:.2s" onclick="pickLoginRole('merchant')">
+          <div style="font-size:36px;margin-bottom:8px">🏪</div>
+          <div style="font-weight:700;font-size:15px">我是商家</div>
+          <div style="font-size:11px;color:var(--gray-500);margin-top:4px">管理我的店铺</div>
+        </div>
+        <div style="flex:1;background:#fff;border:2px solid var(--gray-200);border-radius:14px;padding:24px 16px;text-align:center;cursor:pointer;transition:.2s" onclick="pickLoginRole('student')">
+          <div style="font-size:36px;margin-bottom:8px">🎓</div>
+          <div style="font-weight:700;font-size:15px">我是学生</div>
+          <div style="font-size:11px;color:var(--gray-500);margin-top:4px">发现周边优惠</div>
+        </div>
+      </div>
+      <div id="loginStudentConfirm" style="display:none">
+        <div style="text-align:center;padding:4px;color:var(--gray-500);font-size:13px;margin-bottom:8px">以学生身份浏览所有店铺优惠</div>
+      </div>
+      <div class="form-group"><input type="text" class="form-input" id="loginUser" placeholder="用户名" style="font-size:13px"></div>
+      <div class="form-group"><input type="password" class="form-input" id="loginPass" placeholder="密码" style="font-size:13px" onkeydown="if(event.key==='Enter')doLogin()"></div>
+      <button class="btn btn-primary" style="width:100%;padding:12px;font-size:14px" onclick="doLogin()">登录</button>
+      
+      <!-- 快速体验：预设账号 -->
+      <div style="margin-top:18px;padding-top:16px;border-top:1px solid var(--gray-200)">
+        <div style="font-size:12px;color:var(--gray-400);text-align:center;margin-bottom:12px">⚡ 不想注册？点击即可体验</div>
+        <!-- 商家体验 -->
+        <div style="font-size:10px;color:var(--gray-400);text-align:center;margin-bottom:6px;letter-spacing:1px">━━━ 🏪 商家体验账号 ━━━</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:10px" id="quickMerchantBtns">
+          <button style="background:#f0f7ff;border:1px solid #dbeafe;border-radius:10px;padding:10px 12px;cursor:pointer;display:flex;align-items:center;gap:8px;font-size:inherit" data-user="zhangtea"><span style="font-size:18px">🧋</span><span style="font-size:12px;font-weight:600">老张的茶</span></button>
+          <button style="background:#f0f7ff;border:1px solid #dbeafe;border-radius:10px;padding:10px 12px;cursor:pointer;display:flex;align-items:center;gap:8px;font-size:inherit" data-user="lifruit"><span style="font-size:18px">🍉</span><span style="font-size:12px;font-weight:600">李姐水果铺</span></button>
+          <button style="background:#f0f7ff;border:1px solid #dbeafe;border-radius:10px;padding:10px 12px;cursor:pointer;display:flex;align-items:center;gap:8px;font-size:inherit" data-user="wangprint"><span style="font-size:18px">🖨️</span><span style="font-size:12px;font-weight:600">王师傅文印</span></button>
+          <button style="background:#f0f7ff;border:1px solid #dbeafe;border-radius:10px;padding:10px 12px;cursor:pointer;display:flex;align-items:center;gap:8px;font-size:inherit" data-user="lafu"><span style="font-size:18px">🍜</span><span style="font-size:12px;font-weight:600">拉福兰州拉面</span></button>
+          <button style="background:#f0f7ff;border:1px solid #dbeafe;border-radius:10px;padding:10px 12px;cursor:pointer;display:flex;align-items:center;gap:8px;font-size:inherit" data-user="jjbakery"><span style="font-size:18px">🍰</span><span style="font-size:12px;font-weight:600">静静烘焙坊</span></button>
+          <button style="background:#f0f7ff;border:1px solid #dbeafe;border-radius:10px;padding:10px 12px;cursor:pointer;display:flex;align-items:center;gap:8px;font-size:inherit" data-user="haolinshi"><span style="font-size:18px">🧋</span><span style="font-size:12px;font-weight:600">好邻零食铺</span></button>
+        </div>
+        <!-- 学生体验 -->
+        <div style="font-size:10px;color:var(--gray-400);text-align:center;margin-bottom:6px;letter-spacing:1px">━━━ 🎓 学生体验账号 ━━━</div>
+        <button style="width:100%;background:#f0fdf4;border:1px solid #bbf7d0;border-radius:10px;padding:10px 12px;cursor:pointer;display:flex;align-items:center;gap:8px;font-size:inherit" id="quickStudentBtn"><span style="font-size:18px">🎓</span><span style="font-size:12px;font-weight:600">小东同学</span></button>
+      </div>
+    </div>
+    <div id="registerForm" style="display:none">
+      <div class="form-group"><label class="form-label">用户名</label><input type="text" class="form-input" id="regUser" placeholder="设置用户名" style="font-size:13px"></div>
+      <div class="form-group"><label class="form-label">密码</label><input type="password" class="form-input" id="regPass" placeholder="设置密码（至少6位）" style="font-size:13px"></div>
+      <div style="display:flex;gap:12px;margin-bottom:16px">
+        <div style="flex:1;background:#fff;border:2px solid var(--gray-200);border-radius:10px;padding:16px;text-align:center;cursor:pointer;transition:.2s" onclick="pickRegRole('merchant')" id="regMerchantCard">
+          <div style="font-size:28px;margin-bottom:4px">🏪</div><div style="font-size:13px;font-weight:600">商家</div>
+        </div>
+        <div style="flex:1;background:#fff;border:2px solid var(--gray-200);border-radius:10px;padding:16px;text-align:center;cursor:pointer;transition:.2s" onclick="pickRegRole('student')" id="regStudentCard">
+          <div style="font-size:28px;margin-bottom:4px">🎓</div><div style="font-size:13px;font-weight:600">学生</div>
+        </div>
+      </div>
+      <div id="regShopInput" style="display:none;margin-bottom:12px">
+        <div class="form-group"><label class="form-label">店铺名称</label><input type="text" class="form-input" id="regShopName" placeholder="输入你的店铺名称，如：老张的茶" style="font-size:13px"></div>
+        <div class="form-group"><label class="form-label">店铺位置</label><input type="text" class="form-input" id="regShopAddr" placeholder="如：东北大学南门东侧50米" style="font-size:13px"></div>
+      </div>
+      <div id="regSchoolInput" style="display:none;margin-bottom:12px">
+        <div class="form-group"><label class="form-label">所在学校</label><input type="text" class="form-input" id="regSchool" placeholder="如：东北大学" style="font-size:13px"></div>
+      </div>
+      <button class="btn btn-green" style="width:100%;padding:12px;font-size:14px" onclick="doRegister()">创建账号</button>
+    </div>
+  </div>
+</div>
+
+<!-- 用户菜单：点击头像弹出 -->
+<div id="userMenu" style="display:none;position:fixed;top:54px;right:12px;z-index:9999;background:#fff;border-radius:14px;box-shadow:0 8px 32px rgba(0,0,0,.15);padding:8px;min-width:200px;border:1px solid var(--gray-200)">
+  <div style="padding:10px 14px;font-size:13px;font-weight:600;color:var(--gray-800);border-bottom:1px solid var(--gray-100)" id="uMenuCur">当前账号</div>
+  <div style="padding:6px 0">
+    <div id="uMenuOtherRole" style="display:none;padding:10px 14px;font-size:13px;cursor:pointer;border-radius:10px;transition:.15s" onmouseover="this.style.background='var(--gray-50)'" onmouseout="this.style.background=''" onclick="closeUserMenu();switchRole(userRole==='merchant'?'student':'merchant')">🔄 切换身份</div>
+    <div style="padding:10px 14px;font-size:13px;cursor:pointer;border-radius:10px;transition:.15s" onmouseover="this.style.background='var(--gray-50)'" onmouseout="this.style.background=''" onclick="closeUserMenu();openModal('loginModal');switchLoginTab('login')">🔑 切换账号</div>
+    <div style="padding:10px 14px;font-size:13px;cursor:pointer;border-radius:10px;color:#ef4444;transition:.15s" onmouseover="this.style.background='#fef2f2'" onmouseout="this.style.background=''" onclick="closeUserMenu();logout()">🚪 退出登录</div>
+  </div>
+</div>
+
+<!-- 学生端：店铺详情弹窗 -->
+<div class="modal-over" id="shopDetailModal">
+  <div class="modal-pn lg">
+    <div class="modal-hd"><div class="modal-title" id="sdmTitle">🏪 店铺详情</div><div class="modal-close" onclick="closeM('shopDetailModal')">✕</div></div>
+    <div id="sdmBody"></div>
+  </div>
+</div>
+
+<!-- 实时聊天弹窗 -->
+<div class="modal-over" id="chatModal">
+  <div class="modal-pn">
+    <div class="modal-hd"><div class="modal-title" id="chatTitle">💬 联系商家</div><div class="modal-close" onclick="closeM('chatModal')">✕</div></div>
+    <div class="chat-panel">
+      <div class="chat-msgs" id="chatMsgs"></div>
+      <div class="chat-input-row">
+        <input type="text" id="chatInput" placeholder="输入消息..." onkeydown="if(event.key==='Enter')sendChatMsg()">
+        <button class="btn btn-primary" onclick="sendChatMsg()">发送</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ===== 全局状态 =====
+let loggedIn = false, userRole = '', userId = '', merchantShopId = '';
+// 双会话：分别保存学生和商家的登录状态
+let studentSession = null, merchantSession = null;
+// 活跃会话引用
+let activeSession = null;
+function getSession(role){ return role==='merchant'?merchantSession:studentSession; }
+function setSession(role, ses){ if(role==='merchant') merchantSession=ses; else studentSession=ses; }
+let curRole = 'merchant', curSchool = '东北大学', editPid = null;
+let apiBase = window.location.origin; // 后端地址（同源部署）
+// 本地打开文件或本地预览时自动指向远程服务器
+if(!apiBase || apiBase==='null' || apiBase.startsWith('file://')){
+  apiBase = 'http://8.217.190.139:5000';
+}
+if(apiBase.includes('localhost') || apiBase.includes('127.0.0.1')){
+  // 本地 HTTP 预览时，API 仍指向远程（避免 CORS 和端口冲突）
+  apiBase = 'http://8.217.190.139:5000';
+}
+let products = [
+  {id:1,name:'珍珠奶茶',price:15.9,basePrice:15.9,img:'',tag:'主推',sales:486,retain:72,inv:120},
+  {id:2,name:'杨枝甘露',price:18.0,basePrice:18.0,img:'',tag:'爆款',sales:312,retain:65,inv:85},
+  {id:3,name:'柠檬水',price:8.0,basePrice:8.0,img:'',tag:'引流',sales:245,retain:55,inv:200},
+  {id:4,name:'茉莉绿茶',price:10.0,basePrice:10.0,img:'',sales:198,retain:48,inv:150},
+  {id:5,name:'提拉米苏',price:22.0,basePrice:22.0,img:'',tag:'滞销',sales:45,retain:30,inv:60}
+];
+let calNodes = [
+  {name:'期末考试周',date:'6.20 - 7.4',level:'important'},
+  {name:'暑假假期',date:'7.15 - 8.31',level:'holiday'},
+  {name:'新生报到/开学季',date:'9.1 起',level:'important'},
+  {name:'新生军训',date:'约 9.5 - 9.20',level:'normal'},
+  {name:'国庆假期',date:'10.1 - 7',level:'normal'},
+  {name:'期中考试',date:'约 11月上旬',level:'normal'},
+  {name:'考研冲刺月',date:'12.1 起',level:'normal'},
+  {name:'元旦/寒假前',date:'1.1 - 1.15',level:'important'},
+  {name:'寒假',date:'1.15 - 2.25',level:'holiday'},
+  {name:'春季开学',date:'2.25 起',level:'important'},
+  {name:'毕业答辩周',date:'约 5-6月',level:'important'}
+];
+
+// V7 新品：天气状态
+let weatherState = {type:'sunny',temp:28};
+
+// V7 新品：手动录入的销售记录
+let salesRecords = [];
+
+// V7 新品：营销推广产品列表（同步自AI营销）
+let promoProducts = [
+  {name:'珍珠奶茶',price:15.9,dealPrice:7.95,deal:'买一送一',time:'今晚起',title:'期末冲刺·熬夜续命',date:'6/20',shopName:'老张的茶'},
+  {name:'冰西瓜(半个)',price:18.0,dealPrice:12.0,deal:'全场8折',time:'本周末',title:'夏日清凉特惠',date:'6/20',shopName:'李姐水果铺'},
+  {name:'黑白打印',price:0.10,dealPrice:0.05,deal:'毕业季半价',time:'本月',title:'🎓 毕业服务周',date:'6/20',shopName:'王师傅文印'},
+  {name:'兰州拉面',price:15.0,dealPrice:10.0,deal:'学生价',time:'每天',title:'学生优惠',date:'6/20',shopName:'拉福兰州拉面'},
+  {name:'提拉米苏',price:25.0,dealPrice:18.0,deal:'下午茶7折',time:'每日14:00',title:'烘焙下午茶',date:'6/20',shopName:'静静烘焙坊'},
+  {name:'冰可乐',price:4.0,dealPrice:2.5,deal:'买二送一',time:'全天',title:'便利店特惠',date:'6/20',shopName:'好邻零食铺'}
+];
+
+// V7 新品：最后一次生成的文案缓存（用于同步到售卖信息）
+let lastGenCopy = null;
+
+// V7 学生端：周边店铺数据（初始模板，登录后从后端 /api/shops 同步）
+const shopsData = [
+  {
+    id:'zhangtea',name:'老张的茶',emoji:'🧋',color:'#f97316',type:'奶茶/咖啡',
+    addr:'东北大学南门东侧50米',dist:'120m',school:'东北大学',
+    desc:'东大最火奶茶店，期末季买一送一。营业至23:30，支持到店自取。',
+    tags:[{t:'学生8折',c:'badge-hot'},{t:'买一送一',c:'badge-hot'},{t:'夜宵',c:'atag-hot'}],
+    products:[
+      {name:'珍珠奶茶',price:15.9,dealPrice:7.95,deal:'买一送一',tag:'主推',img:''},
+      {name:'杨枝甘露',price:18.0,dealPrice:14.0,deal:'学生证8折',tag:'爆款',img:''},
+      {name:'柠檬水',price:8.0,dealPrice:5.0,deal:'满20减5',tag:'引流',img:''},
+      {name:'茉莉绿茶',price:10.0,dealPrice:10.0,deal:'正常价',img:''},
+      {name:'提拉米苏',price:22.0,dealPrice:15.0,deal:'特价清仓',tag:'滞销',img:''}
+    ]
+  },
+  {
+    id:'lifruit',name:'李姐水果铺',emoji:'🍉',color:'#10b981',type:'水果生鲜',
+    addr:'东北大学东门300米',dist:'280m',school:'东北大学',
+    desc:'现切现卖新鲜水果，满30送柠檬水。夏季特供冰镇果切。',
+    tags:[{t:'满30送礼',c:'atag-new'},{t:'当季鲜果',c:'badge-hot'}],
+    products:[
+      {name:'冰西瓜(半个)',price:18.0,dealPrice:12.0,deal:'全场8折',tag:'当季',img:''},
+      {name:'蜜瓜果切',price:15.0,dealPrice:10.0,deal:'全场8折',img:''},
+      {name:'葡萄(斤)',price:12.0,dealPrice:9.0,deal:'满30减5',img:''},
+      {name:'苹果果切',price:8.0,dealPrice:8.0,deal:'正常价',img:''}
+    ]
+  },
+  {
+    id:'wangprint',name:'王师傅文印',emoji:'🖨️',color:'#8b5cf6',type:'文印店',
+    addr:'东北大学东门100米',dist:'350m',school:'东北大学',
+    desc:'支持在线上传文件，立等可取。毕业季装订学生优惠。',
+    tags:[{t:'毕业季',c:'atag-hot'},{t:'手机上传',c:'atag-new'}],
+    products:[
+      {name:'黑白打印',price:0.10,dealPrice:0.05,deal:'毕业季半价',tag:'热促',img:''},
+      {name:'彩色打印',price:0.50,dealPrice:0.30,deal:'满100页减',img:''},
+      {name:'复印装订',price:5.0,dealPrice:3.0,deal:'毕业季特惠',img:''},
+      {name:'海报打印',price:15.0,dealPrice:12.0,deal:'学生价',img:''}
+    ]
+  },
+  {
+    id:'lafu',name:'拉福兰州拉面',emoji:'🍜',color:'#ef4444',type:'餐饮小吃',
+    addr:'东北大学南门对面',dist:'80m',school:'东北大学',
+    desc:'正宗兰州拉面，学生价份量大。期末考试周送卤蛋。',
+    tags:[{t:'学生价',c:'badge-hot'},{t:'免费加面',c:'atag-new'},{t:'送卤蛋',c:'atag-hot'}],
+    products:[
+      {name:'兰州拉面',price:15.0,dealPrice:10.0,deal:'学生价',tag:'热销',img:''},
+      {name:'锅贴饺子',price:18.0,dealPrice:12.0,deal:'满30减6',img:''},
+      {name:'麻辣烫',price:22.0,dealPrice:18.0,deal:'第二份半价',img:''}
+    ]
+  },
+  {
+    id:'jjbakery',name:'静静烘焙坊',emoji:'🍰',color:'#ec4899',type:'蛋糕甜品',
+    addr:'东北大学西门200米',dist:'420m',school:'东北大学',
+    desc:'手工现做蛋糕甜品，支持定制生日蛋糕。每日下午新鲜出炉。',
+    tags:[{t:'定制蛋糕',c:'atag-new'},{t:'下午茶',c:'badge-hot'}],
+    products:[
+      {name:'提拉米苏',price:25.0,dealPrice:18.0,deal:'下午茶7折',tag:'人气',img:''},
+      {name:'泡芙(6只)',price:18.0,dealPrice:12.0,deal:'买二送一',img:''},
+      {name:'纸杯蛋糕',price:12.0,dealPrice:8.0,deal:'学生价',img:''}
+    ]
+  },
+  {
+    id:'haolinshi',name:'好邻零食铺',emoji:'🏪',color:'#06b6d4',type:'便利店',
+    addr:'东北大学南门30米',dist:'50m',school:'东北大学',
+    desc:'24h便利店，饮料零食文具应有尽有。期末考试周满20减5，夜宵神器便宜又好。',
+    tags:[{t:'满20减5',c:'atag-hot'},{t:'24h营业',c:'atag-new'},{t:'夜宵',c:'badge-hot'}],
+    products:[
+      {name:'冰可乐',price:4.0,dealPrice:2.5,deal:'买二送一',tag:'爆款',img:''},
+      {name:'薯片(大袋)',price:8.0,dealPrice:5.0,deal:'满20减5',img:''},
+      {name:'三明治',price:12.0,dealPrice:8.0,deal:'夜宵特价',tag:'热促',img:''},
+      {name:'碳素笔',price:3.0,dealPrice:2.0,deal:'学生价',img:''}
+    ]
+  }
+];
+
+const typeProducts = {
+  tea:['珍珠奶茶','杨枝甘露','柠檬水','茉莉绿茶','提拉米苏','芋圆波波','冰淇淋','奶盖茶','冰美式','热拿铁'],
+  food:['兰州拉面','鸡排饭','锅贴饺子','盖浇饭','麻辣烫','关东煮','咖喱饭','蛋炒饭','寿司','鸡翅'],
+  fruit:['西瓜','蜜瓜','葡萄','苹果果切','草莓','猕猴桃','车厘子','香蕉','橙子','火龙果'],
+  print:['黑白打印','彩色打印','复印装订','海报打印','论文排版','毕业相册','名片制作','横幅制作'],
+  hair:['洗剪吹','烫染','护理','头皮护理','染色','造型设计','理发','刘海修剪'],
+  conv:['饮料','零食','文具','日用','电池','手机配件','礼品','方便面','纸巾','水'],
+  cake:['提拉米苏','纸杯蛋糕','生日蛋糕','可颂','吐司','泡芙','蛋挞','慕斯','布丁'],
+  hotpot:['麻辣烫','烤肉','串串','火锅底料','蘸料','啤酒','汽水'],
+  dress:['连衣裙','T恤','牛仔裤','外套','运动鞋','卫衣','短裤','帽子'],
+  book:['教辅书','小说','文具套装','笔记本','书包','中性笔','考研资料','四六级']
+};
+let curType = 'tea';
+
+// ===== 初始化 =====
+document.addEventListener('DOMContentLoaded',()=>{
+  // 绑定快速登录按钮（用事件监听替代 onclick）
+  var mBtns = document.getElementById('quickMerchantBtns');
+  if(mBtns){
+    mBtns.querySelectorAll('button').forEach(function(btn){
+      btn.addEventListener('click', function(){ quickLoginM(this.dataset.user); });
+    });
+  }
+  var sBtn = document.getElementById('quickStudentBtn');
+  if(sBtn) sBtn.addEventListener('click', quickLoginS);
+  
+  renderAll();
+  renderDeals();
+  renderShops();
+  if(Notification) Notification.requestPermission();
+  updateWeather();
+  document.getElementById('recDate').value = new Date().toISOString().split('T')[0];
+  document.getElementById('tnM').style.display = loggedIn&&userRole==='merchant'?'block':'none';
+  document.getElementById('tnS').style.display = loggedIn&&userRole==='student'?'block':'none';
+});
+
+// ===== V7 登录系统 =====
+let pendingRole = '', regRole = '';
+
+// 快速登录：预设商家账号
+function quickLoginM(user){
+  document.getElementById('loginUser').value = user;
+  document.getElementById('loginPass').value = '123456';
+  pickLoginRole('merchant');
+  pendingRole = 'merchant';
+  merchantShopId = user;
+  doLogin();
+}
+// 快速登录：预设学生账号
+function quickLoginS(){
+  document.getElementById('loginUser').value = 'student1';
+  document.getElementById('loginPass').value = '123456';
+  pickLoginRole('student');
+  pendingRole = 'student';
+  doLogin();
+}
+
+// 从后端拉取店铺数据
+async function loadShopsFromAPI(){
+  try{
+    const res = await fetch(apiBase+'/api/shops');
+    const data = await res.json();
+    if(Array.isArray(data) && data.length>0){
+      shopsData.length = 0;
+      data.forEach(s=>{
+        const tags = Array.isArray(s.tags) ? s.tags.map(t=>typeof t==='string'?{t:t,c:'badge-hot'}:t) : [];
+        shopsData.push({
+          id: s.id, name: s.name, emoji: s.emoji||'🏪', color: s.color||'#6366f1',
+          type: s.type||'自定义', addr: s.addr||'', dist: s.dist||'附近',
+          desc: s.desc||s.name, school: s.school||'',
+          tags: tags,
+          products: (s.products||[]).map(p=>({
+            name: p.name, price: p.price, dealPrice: p.deal_price||p.price,
+            deal: p.deal||'正常价', tag: p.tag||''
+          })),
+          promos: s.promos||[]
+        });
+      });
+    }
+  }catch(e){}
+}
+
+// 从后端加载当前商家产品
+async function loadProductsFromAPI(shopId){
+  if(!shopId) return;
+  try{
+    const res = await fetch(apiBase+'/api/products/'+shopId);
+    const data = await res.json();
+    if(Array.isArray(data) && data.length>0){
+      products.length = 0;
+      data.forEach(p=>{
+        products.push({
+          id: p.id, name: p.name, price: p.price, basePrice: p.base_price||p.price,
+          img: p.img||'', tag: p.tag||'',
+          sales: p.sales||Math.floor(Math.random()*300+50),
+          retain: p.retain||Math.floor(Math.random()*50+30),
+          inv: p.inv||Math.floor(Math.random()*150+50)
+        });
+      });
+    }
+  }catch(e){}
+}
+
+// 从后端加载促销数据
+async function loadPromosFromAPI(){
+  try{
+    const res = await fetch(apiBase+'/api/promotions');
+    const data = await res.json();
+    if(Array.isArray(data) && data.length>0){
+      promoProducts.length = 0;
+      data.forEach(p=>{
+        promoProducts.push({
+          shopName: p.shop_name, name: p.name, price: p.price,
+          dealPrice: p.deal_price, deal: p.deal, deal_time: p.deal_time||'',
+          title: p.title||''
+        });
+      });
+    }
+  }catch(e){}
+}
+
+// 从后端获取当前登录用户信息（用于恢复会话）
+async function loadMeFromAPI(){
+  try{
+    const res = await fetch(apiBase+'/api/me');
+    if(!res.ok) return null;
+    return await res.json();
+  }catch(e){ return null; }
+}
+
+function switchLoginTab(tab){
+  document.getElementById('tabLogin').style.cssText = tab==='login'?'flex:1;padding:10px;border:none;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;transition:.2s;background:var(--blue);color:#fff':'flex:1;padding:10px;border:none;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;transition:.2s;background:transparent;color:var(--gray-500)';
+  document.getElementById('tabRegister').style.cssText = tab==='register'?'flex:1;padding:10px;border:none;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;transition:.2s;background:var(--green);color:#fff':'flex:1;padding:10px;border:none;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;transition:.2s;background:transparent;color:var(--gray-500)';
+  document.getElementById('loginForm').style.display = tab==='login'?'block':'none';
+  document.getElementById('registerForm').style.display = tab==='register'?'block':'none';
+}
+
+function pickLoginRole(role){
+  pendingRole = role;
+  const merchantCard = document.querySelector('#loginRoleBtns > div:first-child');
+  const studentCard = document.querySelector('#loginRoleBtns > div:last-child');
+  merchantCard.style.cssText = 'flex:1;background:#fff;border:2px solid var(--gray-200);border-radius:14px;padding:24px 16px;text-align:center;cursor:pointer;transition:.2s';
+  studentCard.style.cssText = 'flex:1;background:#fff;border:2px solid var(--gray-200);border-radius:14px;padding:24px 16px;text-align:center;cursor:pointer;transition:.2s';
+  if(role==='merchant'){
+    merchantCard.style.cssText = 'flex:1;background:linear-gradient(135deg,#1A56DB,#6366f1);color:#fff;border-radius:14px;padding:24px 16px;text-align:center;cursor:pointer;transition:.2s;border:3px solid #fbbf24';
+    document.getElementById('loginStudentConfirm').style.display='none';
+  } else {
+    studentCard.style.cssText = 'flex:1;background:linear-gradient(135deg,#10B981,#34D399);color:#fff;border-radius:14px;padding:24px 16px;text-align:center;cursor:pointer;transition:.2s;border:3px solid #34D399';
+    document.getElementById('loginStudentConfirm').style.display='block';
+  }
+}
+
+function pickRegRole(role){
+  regRole = role;
+  document.getElementById('regMerchantCard').style.cssText = role==='merchant'?'flex:1;background:#eff6ff;border:2px solid var(--blue);border-radius:10px;padding:16px;text-align:center;cursor:pointer;transition:.2s':'flex:1;background:#fff;border:2px solid var(--gray-200);border-radius:10px;padding:16px;text-align:center;cursor:pointer;transition:.2s';
+  document.getElementById('regStudentCard').style.cssText = role==='student'?'flex:1;background:#ecfdf5;border:2px solid var(--green);border-radius:10px;padding:16px;text-align:center;cursor:pointer;transition:.2s':'flex:1;background:#fff;border:2px solid var(--gray-200);border-radius:10px;padding:16px;text-align:center;cursor:pointer;transition:.2s';
+  document.getElementById('regShopInput').style.display = role==='merchant'?'block':'none';
+  document.getElementById('regSchoolInput').style.display = role==='student'?'block':'none';
+}function doLogin(){
+  const username = document.getElementById('loginUser').value.trim() || 'student1';
+  const password = document.getElementById('loginPass').value.trim() || '123456';
+  
+  // 尝试后端登录
+  fetch(apiBase+'/api/auth/login',{
+    method:'POST', headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({username, password})
+  })
+  .then(r=>r.json())
+  .then(data=>{
+    if(data.error){ showT(data.error); return; }
+    const role = data.user.role;
+    // 优先用后端返回的店铺名称
+    let dName = data.user.shop_name || data.user.username;
+    if(!dName && role==='student' && data.user.username.startsWith('student')) dName = '东大小明';
+    if(!dName) dName = data.user.username;
+    // 确保店铺数据同步到客户端 shopsData
+    if(data.user.shop_id && data.user.shop_name){
+      if(!shopsData.find(s=>s.id===data.user.shop_id)){
+        shopsData.push({id:data.user.shop_id, name:data.user.shop_name, emoji:'🏪', color:'#6366f1', type:'自定义', addr:'', dist:'附近', desc:data.user.shop_name, tags:[], products:[]});
+      }
+    }
+    const ses = {
+      token: data.token,
+      userId: data.user.username,
+      userRole: role,
+      shopId: data.user.shop_id || '',
+      shopName: data.user.shop_name || '',
+      school: data.user.school || curSchool,
+      displayName: dName
+    };
+    setSession(role, ses);
+    loggedIn = true;
+    if(data.user.school) curSchool = data.user.school;
+    if(role==='merchant' && data.user.shop_id) merchantShopId = data.user.shop_id;
+    finishLogin(role);
+  })
+  .catch(()=>{
+    // 后端不可达 → 模拟登录
+    const role = pendingRole;
+    let sid='', dName=username, school=curSchool;
+    if(role==='merchant'){
+      let s = shopsData.find(x=>x.name===username);
+      if(!s && merchantShopId) s = shopsData.find(x=>x.id===merchantShopId);
+      sid = s ? s.id : ''; dName = s ? s.name : username;
+      if(s) products = s.products.map(p=>({id:Date.now()+Math.random(),name:p.name,price:p.price,basePrice:p.price,img:'',tag:p.tag||'',sales:Math.floor(Math.random()*300+50),retain:Math.floor(Math.random()*50+30),inv:Math.floor(Math.random()*150+50)}));
+      curType = s&&s.type&&typeProducts[s.type] ? s.type : 'tea';
+    }
+    if(role==='student' && username.startsWith('student')) dName='东大小明';
+    const ses = {token:'',userId:username,userRole:role,shopId:sid,shopName:dName,school,displayName:dName};
+    setSession(role, ses);
+    loggedIn = true;
+    finishLogin(role);
+  });
+}
+
+function doRegister(){
+  const username = document.getElementById('regUser').value.trim();
+  const password = document.getElementById('regPass').value.trim();
+  if(!username||!password){ showT('请输入用户名和密码'); return; }
+  if(password.length<6){ showT('密码至少6位'); return; }
+  if(!regRole){ showT('请选择商家或学生身份'); return; }
+  let shopId='',shopName='',shopAddr='',school='';
+  if(regRole==='merchant'){
+    shopName=document.getElementById('regShopName').value.trim();
+    shopAddr=document.getElementById('regShopAddr').value.trim()||'自定义位置';
+    if(!shopName){showT('请输入店铺名称');return;}
+    shopId='s_'+Date.now().toString(36);merchantShopId=shopId;
+  }
+  if(regRole==='student'){
+    school=document.getElementById('regSchool').value.trim();
+    if(!school){showT('请输入所在学校');return;}
+  }
+  fetch(apiBase+'/api/auth/register',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({username,password,role:regRole,shop_id:shopId,shop_name:shopName,shop_addr:shopAddr,shop_school:curSchool,school})})
+  .then(r=>r.json()).then(data=>{
+    if(data.error){showT(data.error);return;}
+    if(regRole==='merchant'&&shopName){if(!shopsData.find(s=>s.name===shopName)){shopsData.push({id:shopId,name:shopName,emoji:'🏪',color:'#6366f1',type:'自定义',addr:shopAddr,dist:'附近',desc:shopName,tags:[],products:[]});}pendingRole='merchant';pickLoginRole('merchant');}else{pendingRole='student';}
+    showT('注册成功！请登录');switchLoginTab('login');document.getElementById('loginUser').value=username;
+  }).catch(()=>showT('注册成功（离线模式）'));
+}
+
+function finishLogin(role){
+  // 激活指定角色的会话
+  const r = role || userRole;
+  const ses = getSession(r);
+  if(!ses) return;
+  
+  // 同步全局状态
+  userRole = ses.userRole;
+  userId = ses.userId;
+  merchantShopId = ses.shopId;
+  curSchool = ses.school;
+  curRole = r;
+  const displayName = ses.displayName;
+  
+  closeM('loginModal');
+  document.getElementById('mainContainer').style.display = 'block';
+  const emoji = r==='merchant'?'🏪':'🎓';
+  document.getElementById('headerUser').innerHTML = emoji+' '+displayName+' ▾';
+  document.getElementById('headerUser').style.color = 'var(--blue)';
+  document.getElementById('headerUser').onclick = function(e){
+    e.stopPropagation();
+    showUserMenu();
+  };
+  document.getElementById('roleSw').style.display = 'flex';
+  if(r==='merchant'){
+    document.getElementById('btnM').classList.add('active');
+    document.getElementById('btnS').classList.remove('active');
+    document.getElementById('tnM').style.display='block';
+    document.getElementById('tnS').style.display='none';
+    // 店铺名称从后端返回的真实 shop_name 设置
+    const realShopName = ses.shopName || displayName;
+    document.getElementById('shopName').value = realShopName;
+    syncMerchantToShop();
+    navTab(getTab('m-home'));
+  } else {
+    document.getElementById('btnS').classList.add('active');
+    document.getElementById('btnM').classList.remove('active');
+    document.getElementById('tnM').style.display='none';
+    document.getElementById('tnS').style.display='block';
+    navTab(getTab('s-deals'));
+  }
+  renderAll();
+  renderDeals();
+  renderShops();
+  if(r==='merchant') renderMerchantConvs();
+  else renderStudentChats();
+  
+  // 从后端同步最新店铺数据
+  loadShopsFromAPI().then(()=>{
+    syncMerchantToShop();
+    renderDeals(); renderShops();
+  });
+  // 商家登录时加载产品和促销
+  if(r==='merchant' && merchantShopId){
+    loadProductsFromAPI(merchantShopId).then(()=>{
+      renderAll(); syncMerchantToShop(); renderDeals();
+    });
+    loadPromosFromAPI().then(()=>renderDeals());
+  }
+  
+  // 更新学生端"我的"页面
+  if(document.getElementById('mineName')){
+    document.getElementById('mineName').textContent = displayName;
+    document.getElementById('mineInfo').textContent = r==='merchant'?('商家 · '+curSchool):('学生 · '+curSchool);
+  }
+  // 更新商家端"我的"页面
+  if(document.getElementById('mProfileName')){
+    if(r==='merchant'){
+      const shop = shopsData.find(s=>s.id===merchantShopId);
+      const addr = shop ? shop.addr : '';
+      const dist = shop ? shop.dist : '';
+      document.getElementById('mProfileName').textContent = displayName+'老板';
+      document.getElementById('mProfileInfo').textContent = displayName+' · '+(addr||dist||curSchool+'周边');
+      document.getElementById('mProfileEmoji').textContent = shop ? shop.emoji : '🏪';
+    }
+  }
+}
+
+function renderAll(){
+  renderCal();
+  renderShopTags();
+  renderGallery();
+  renderMarketTags();
+  renderPricing();
+  renderTypes();
+  renderSchools();
+  renderSalesInfo();
+  renderRecords();
+  checkProductWarnings();
+}
+
+// ===== 角色切换 =====
+function switchRole(r){
+  const ses = getSession(r);
+  if(ses){
+    // 已有会话 → 直接切换
+    finishLogin(r);
+    return;
+  }
+  // 无会话 → 引导登录
+  openModal('loginModal');
+  pickLoginRole(r);
+  showT('🔐 请先登录'+(r==='merchant'?'商家':'学生')+'账号');
+}
+
+function logout(){
+  studentSession = null; merchantSession = null; activeSession = null;
+  loggedIn = false; userRole = ''; userId = ''; merchantShopId = '';
+  document.getElementById('mainContainer').style.display = 'none';
+  document.getElementById('roleSw').style.display = 'none';
+  document.getElementById('headerUser').innerHTML = '👤 未登录';
+  document.getElementById('headerUser').style.color = 'var(--gray-500)';
+  document.getElementById('headerUser').onclick = function(){ openModal('loginModal') };
+  closeUserMenu();
+  showT('👋 已退出登录');
+}
+
+// ===== 用户菜单 =====
+function showUserMenu(){
+  const menu = document.getElementById('userMenu');
+  if(!menu) return;
+  const ses = getSession(userRole);
+  const otherRole = userRole==='merchant'?'student':'merchant';
+  const otherSes = getSession(otherRole);
+  document.getElementById('uMenuCur').textContent = '👤 '+userRole+' · '+(ses?ses.displayName:userId);
+  const otherEl = document.getElementById('uMenuOtherRole');
+  if(otherSes){
+    otherEl.style.display = 'block';
+    otherEl.textContent = '🔄 切换至'+(otherRole==='merchant'?'商家':'学生')+'：'+otherSes.displayName;
+  } else {
+    otherEl.style.display = 'none';
+  }
+  menu.style.display = 'block';
+}
+function closeUserMenu(){
+  const menu = document.getElementById('userMenu');
+  if(menu) menu.style.display = 'none';
+}
+
+// 点击页面其他地方关闭菜单
+document.addEventListener('click', function(e){
+  const menu = document.getElementById('userMenu');
+  if(!menu || menu.style.display!=='block') return;
+  if(menu.contains(e.target)) return;
+  const hdr = document.getElementById('headerUser');
+  if(hdr && hdr.contains(e.target)) return;
+  menu.style.display = 'none';
+});
+
+function getTab(p){return document.querySelector('[data-p="'+p+'"]')}
+
+function navTab(el){
+  if(!el)return;
+  el.closest('.tabnav-inner').querySelectorAll('.tab-i').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');
+  const p=el.dataset.p;
+  document.querySelectorAll('.page').forEach(x=>x.classList.remove('active'));
+  const t=document.getElementById(p);if(t)t.classList.add('active');
+  if(p==='m-pricing')renderPricing();
+  if(p==='m-salesinfo')renderSalesInfo();
+  if(p==='m-home')updateHeroStats();
+  if(p==='m-chat')renderMerchantConvs();
+  if(p==='m-report')renderRecords();
+  if(p==='s-deals')renderDeals();
+  if(p==='s-shops')renderShops();
+  if(p==='s-chat')renderStudentChats();
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+// ===== Toast =====
+function showT(m){const t=document.getElementById('toast');t.textContent=m;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2200)}
+
+// ===== 弹窗 =====
+function openModal(id){document.getElementById(id).classList.add('show')}
+function closeM(id){document.getElementById(id).classList.remove('show')}
+document.querySelectorAll('.modal-over').forEach(m=>m.addEventListener('click',function(e){if(e.target===this)closeM(this.id)}))
+
+// ===== V7 完善：提醒 + .ics 下载 =====
+let pendR=null;
+function remind(name,date){pendR={name,date};document.getElementById('remindBody').innerHTML='<div style="text-align:center;padding:8px"><div style="font-size:17px;font-weight:600">'+name+'</div><div style="font-size:13px;color:var(--gray-500)">日期: '+date+'</div></div>';openModal('remindModal')}
+
+function enableNotify(){
+  closeM('remindModal');
+  if(Notification&&Notification.permission==='granted'){new Notification('店小满提醒',{body:'已设置「'+pendR.name+'」提醒'});showT('✅ 已设置提醒')}
+  else if(Notification&&Notification.permission!=='denied'){Notification.requestPermission().then(p=>{if(p==='granted'){new Notification('店小满提醒',{body:'已设置提醒'});showT('✅ 已开启')}else showT('⚠️ 需要允许通知')})}
+  else showT('⚠️ 浏览器不支持通知，请用微信/短信')
+}
+
+// V7 新品：生成 .ics 日历文件并下载
+function downloadICS(){
+  if(!pendR)return showT('请先选择提醒事件');
+  const now = new Date();
+  // 尝试解析日期，简单处理格式如 "6.20"或"6.20 - 7.4"
+  let d = pendR.date.split(' - ')[0].trim();
+  let month = 6, day = 20;
+  if(d.includes('.')){ let parts = d.split('.'); month = parseInt(parts[0])||6; day = parseInt(parts[1])||20; }
+  const year = now.getMonth()+1 < month ? now.getFullYear() : now.getFullYear()+1;
+  const dtStart = year+('0'+month).slice(-2)+('0'+day).slice(-2)+'T090000';
+  const dtEnd = year+('0'+month).slice(-2)+('0'+day).slice(-2)+'T093000';
+  const ics = 'BEGIN:VCALENDAR\r\nVERSION:2.0\r\nPRODID:-//DianXiaoMan//CN\r\nBEGIN:VEVENT\r\nDTSTART:'+dtStart+'\r\nDTEND:'+dtEnd+'\r\nSUMMARY:'+pendR.name+'\r\nDESCRIPTION:店小满提醒 - '+pendR.name+'\\n日期: '+pendR.date+'\\n学校: '+curSchool+'\r\nBEGIN:VALARM\r\nTRIGGER:-PT1H\r\nACTION:DISPLAY\r\nDESCRIPTION:店小满提醒: '+pendR.name+'\r\nEND:VALARM\r\nEND:VEVENT\r\nEND:VCALENDAR';
+  const blob = new Blob([ics],{type:'text/calendar;charset=utf-8'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a'); a.href = url; a.download = pendR.name+'.ics'; a.click();
+  URL.revokeObjectURL(url);
+  closeM('remindModal');
+  showT('📅 .ics 已下载！打开文件即可导入手机日历');
+}
+
+// ===== 学校 =====
+const allS=['东北大学 (南湖校区)','东北大学 (浑南校区)','沈阳师范大学','辽宁大学 (崇山校区)','辽宁大学 (蒲河校区)','沈阳工业大学','沈阳航空航天大学','沈阳理工大学','沈阳建筑大学','沈阳农业大学','沈阳化工大学','沈阳药科大学','中国医科大学','大连理工大学','大连海事大学','东北财经大学','大连医科大学','大连外国语大学','大连交通大学','辽宁师范大学','吉林大学','东北师范大学','长春理工大学','哈尔滨工业大学','哈尔滨工程大学','东北林业大学','黑龙江大学','北京大学','清华大学','中国人民大学','北京航空航天大学','北京理工大学','北京师范大学','复旦大学','上海交通大学','同济大学','华东师范大学','南京大学','东南大学','浙江大学','中国科学技术大学','武汉大学','华中科技大学','中山大学','华南理工大学','四川大学','电子科技大学','重庆大学','西安交通大学','西北工业大学'];
+function renderSchools(){document.getElementById('sList').innerHTML=allS.map(s=>'<div class="tnode" onclick="pickS(\''+s+'\')" style="cursor:pointer"><div class="tnode-left"><div class="tn-name">'+s+'</div></div></div>').join('')}
+function pickS(n){curSchool=n;document.getElementById('curSchool').textContent=n;document.getElementById('heroS').textContent=n;var sEl=document.getElementById('sSchool');if(sEl)sEl.textContent=n;var sEl2=document.getElementById('sSchool2');if(sEl2)sEl2.textContent=n;closeM('schoolModal');showT('🏫 '+n);renderShops();}
+function filterS(){const q=document.getElementById('sSearch').value.toLowerCase();document.querySelectorAll('#sList .tnode').forEach(n=>n.style.display=n.textContent.toLowerCase().includes(q)?'flex':'none')}
+function addCustomSchool(){
+  const name = document.getElementById('customSchool').value.trim();
+  if(!name) return showT('请输入学校名称');
+  // 添加到列表并选择
+  allS.push(name);
+  pickS(name);
+  renderSchools();
+  document.getElementById('customSchool').value = '';
+}
+
+// ===== 日历 =====
+function renderCal(){document.getElementById('calList').innerHTML=calNodes.map((n,i)=>'<div class="tnode"><div class="tnode-left"><div class="tn-dot '+n.level+'"></div><div class="tn-name">'+n.name+'</div><div class="tn-date">'+n.date+'</div></div><div class="tnode-right"><button class="btn btn-ghost btn-xs" onclick="editN('+i+')">编辑</button><button class="btn btn-ghost btn-xs" onclick="calNodes.splice('+i+',1);renderCal()">删除</button></div></div>').join('')}
+function addNode(){
+  const N=document.getElementById('nName').value.trim(),D=document.getElementById('nDate').value.trim(),L=document.getElementById('nLevel').value;
+  if(!N)return showT('请输入名称');
+  calNodes.push({name:N,date:D,level:L});renderCal();closeM('nodeModal');
+  document.getElementById('nName').value='';document.getElementById('nDate').value='';showT('✅ 已添加')
+}
+function editN(i){const n=calNodes[i];document.getElementById('nName').value=n.name;document.getElementById('nDate').value=n.date;document.getElementById('nLevel').value=n.level;openModal('nodeModal');calNodes.splice(i,1)}
+
+// ===== 商户类型 =====
+const types=[{id:'tea',e:'🧋',n:'奶茶/咖啡'},{id:'food',e:'🍜',n:'餐饮小吃'},{id:'fruit',e:'🍉',n:'水果生鲜'},{id:'print',e:'🖨️',n:'文印店'},{id:'hair',e:'💇',n:'理发店'},{id:'conv',e:'🏪',n:'便利店'},{id:'cake',e:'🍰',n:'蛋糕甜品'},{id:'hotpot',e:'🍲',n:'火锅烧烤'},{id:'dress',e:'👗',n:'服装店'},{id:'book',e:'📚',n:'书店文具'}];
+function renderTypes(){
+  const g=document.getElementById('typeGrid');
+  g.innerHTML=types.map(t=>'<div class="type-card '+(t.id===curType?'selected':'')+'" onclick="pickType(\''+t.id+'\')"><div class="t-emoji">'+t.e+'</div><div class="t-name">'+t.n+'</div></div>').join('')+'<div class="type-card-add" onclick="showT(\'自定义类型功能开发中\')"><div style="font-size:24px">+</div><div class="t-name">自定义</div></div>';
+}
+function pickType(id){
+  curType=id;
+  document.querySelectorAll('.type-card').forEach(c=>c.classList.remove('selected'));
+  document.querySelector('.type-card[onclick*="'+id+'"]').classList.add('selected');
+  renderShopTags();
+  showT('已选择: '+types.find(t=>t.id===id).n);
+}
+
+// ===== 产品 =====
+function renderShopTags(){
+  const g=document.getElementById('shopTags');
+  const recs=typeProducts[curType]||typeProducts.tea;
+  const existNames=products.map(p=>p.name);
+  const recP=recs.filter(r=>!existNames.includes(r));
+  g.innerHTML=products.map((p,i)=>'<span class="ptag selected" onclick="this.classList.toggle(\'selected\')">'+p.name+'<span class="del" onclick="event.stopPropagation();delProd('+i+')"> ✕</span></span>').join('')+'<br><span style="font-size:11px;color:var(--gray-500);margin-left:4px">💡 热门推荐（点击添加）:</span> '+recP.map(r=>'<span class="ptag" onclick="quickAdd(\''+r+'\')">+ '+r+'</span>').join('');
+}
+function delProd(i){
+  const prod = products[i];
+  if(prod.id && merchantShopId){
+    fetch(apiBase+'/api/products/'+merchantShopId+'/'+prod.id, {method:'DELETE'}).catch(()=>{});
+  }
+  products.splice(i,1);syncMerchantToShop();renderAll();showT('已删除')
+}
+function quickAdd(name){
+  products.push({id:Date.now(),name,price:0,basePrice:0,img:'',sales:0,retain:0,inv:100});
+  syncMerchantToShop();renderAll();
+  showT('✅ 已添加: '+name);
+}
+function addProduct(){
+  const n=document.getElementById('newProdName').value.trim();
+  const p=parseFloat(document.getElementById('newProdPrice').value)||0;
+  if(!n)return showT('请输入名称');
+  const newProd = {id:Date.now(),name:n,price:p,basePrice:p,img:'',sales:0,retain:0,inv:100};
+  products.push(newProd);
+  if(merchantShopId){
+    fetch(apiBase+'/api/products/'+merchantShopId, {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({name:n, price:p, base_price:p, tag:'', sales:0, retain:0, inv:100})
+    }).then(r=>r.json()).then(d=>{if(d.id) newProd.id = d.id;}).catch(()=>{});
+  }
+  document.getElementById('newProdName').value='';document.getElementById('newProdPrice').value='';
+  syncMerchantToShop();renderAll();showT('✅ 已添加: '+n);
+}
+function renderGallery(){
+  document.getElementById('productGallery').innerHTML=products.map((p,i)=>'<div class="prod-card"><div class="prod-img" onclick="document.getElementById(\'file_'+i+'\').click()">'+(p.img?'<img src="'+p.img+'">':'➕')+'<input type="file" id="file_'+i+'" accept="image/*" onchange="uploadImg('+i+',this)">'+(p.img?'<div class="plus" onclick="event.stopPropagation();document.getElementById(\'file_'+i+'\').click()">+</div>':'')+'</div><div class="prod-body"><div class="prod-name">'+p.name+(p.tag?' <span class="badge '+(p.tag==='滞销'?'badge-slow':p.tag==='主推'?'badge-main':'badge-hot')+'">'+p.tag+'</span>':'')+'</div><div class="prod-meta">¥'+p.price.toFixed(1)+' · 售'+p.sales+' · 回头'+p.retain+'% · 库存'+(p.inv||0)+'件</div><div class="prod-actions"><button class="btn btn-ghost btn-xs" onclick="editPrice('+i+')">调价</button><button class="btn btn-red btn-xs" onclick="delProd('+i+')">删除</button></div></div></div>').join('');
+}
+function uploadImg(i,el){
+  const f=el.files[0];if(!f)return;
+  const r=new FileReader();
+  r.onload=function(e){products[i].img=e.target.result;renderGallery();showT('✅ 图片已上传')};
+  r.readAsDataURL(f);
+}
+function editPrice(i){editPid=i;document.getElementById('priceEditBody').innerHTML='<div class="form-group"><label class="form-label">产品: '+products[i].name+'</label><div class="form-label">当前售价: ¥'+products[i].price.toFixed(1)+'</div></div><div class="form-group"><label class="form-label">新价格 (元)</label><input type="number" class="form-input" id="newPriceVal" value="'+products[i].price+'" step="0.1" min="0"></div>';openModal('priceModal')}
+function savePrice(){
+  const v=parseFloat(document.getElementById('newPriceVal').value);
+  if(isNaN(v)||v<0)return showT('请输入有效价格');
+  products[editPid].price=v;
+  // 同步到后端
+  const prod = products[editPid];
+  if(prod.id && merchantShopId){
+    fetch(apiBase+'/api/products/'+merchantShopId+'/'+prod.id, {
+      method:'PUT', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({price:v})
+    }).catch(()=>{});
+  }
+  syncMerchantToShop();renderAll();closeM('priceModal');showT('✅ 已更新: ¥'+v.toFixed(1))
+}
+
+// ===== 营销文案 — V7上下分栏 + 同步到售卖信息 =====
+function renderMarketTags(){
+  document.getElementById('marketTags').innerHTML=products.map((p,i)=>'<span class="ptag '+(i<2?'selected':'')+'" onclick="this.classList.toggle(\'selected\')">'+p.name+'</span>').join('');
+}
+function toggleCustom(){document.getElementById('customBox').style.display=document.getElementById('mkTopic').value==='custom'?'block':'none'}
+function toggleDealCustom(){document.getElementById('dealCustomBox').style.display=document.getElementById('mkDeal').value==='custom'?'block':'none'}
+function toggleLocCustom(){
+  const v=document.getElementById('shopLoc').value;
+  document.getElementById('shopLocCustom').style.display=v==='custom'?'block':'none';
+}
+
+// ===== V7 百度地图定位 =====
+function getCurrentLocation(){
+  const btn = document.getElementById('locBtn');
+  const hint = document.getElementById('locHint');
+  btn.innerHTML = '⏳ 定位中...';
+  btn.disabled = true;
+  hint.textContent = '正在获取位置...';
+  
+  if(!navigator.geolocation){
+    hint.textContent = '浏览器不支持定位';
+    useSchoolFallback();
+    return;
+  }
+  
+  navigator.geolocation.getCurrentPosition(
+    function(pos){
+      const lat = pos.coords.latitude.toFixed(6);
+      const lng = pos.coords.longitude.toFixed(6);
+      hint.textContent = '获取到坐标: '+lat+', '+lng+' · 正在匹配最近学校...';
+      
+      setTimeout(()=>{
+        let nearSchool = '东北大学 · 南门';
+        if(lng > 124) nearSchool = '吉林大学 · 前卫校区';
+        else if(lat < 41.5) nearSchool = '大连理工大学 · 凌水校区';
+        else if(lat > 42) nearSchool = '哈尔滨工业大学 · 一校区';
+        
+        document.getElementById('shopLoc').value = 'custom';
+        toggleLocCustom();
+        document.getElementById('shopLocCustom').value = nearSchool;
+        hint.innerHTML = '✅ 已定位到 <b>'+nearSchool+'</b>（可手动修改）';
+        btn.innerHTML = '📍 重新定位';
+        btn.disabled = false;
+        showT('📍 已定位: '+nearSchool);
+      }, 800);
+    },
+    function(err){
+      // geolocation 失败常见原因：HTTP站点、用户拒绝、超时
+      useSchoolFallback();
+    },
+    {enableHighAccuracy:true, timeout:8000}
+  );
+  
+  // 定位失败回退：使用当前选中的学校
+  function useSchoolFallback(){
+    btn.innerHTML = '📍 使用当前位置';
+    btn.disabled = false;
+    // 自动用 curSchool 填入商家位置
+    document.getElementById('shopLoc').value = 'custom';
+    toggleLocCustom();
+    document.getElementById('shopLocCustom').value = curSchool + ' · 周边';
+    hint.innerHTML = '⚠️ 定位不可用（需HTTPS），已自动填入当前学校 <b>'+curSchool+'</b>，下方可修改';
+    showT('📍 已使用当前学校: '+curSchool);
+  }
+}
+function genCopy(){
+  showT('✨ 生成中...');
+  setTimeout(()=>{
+    const tv=document.getElementById('mkTopic').value;
+    const tt=tv==='custom'?document.getElementById('customTopic').value:document.getElementById('mkTopic').options[document.getElementById('mkTopic').selectedIndex].text;
+    const dv=document.getElementById('mkDeal').value;
+    const deal=dv==='custom'?document.getElementById('customDeal').value:document.getElementById('mkDeal').options[document.getElementById('mkDeal').selectedIndex].text;
+    const time=document.getElementById('mkTime').value;
+    const prods=[];document.querySelectorAll('#marketTags .ptag.selected').forEach(p=>prods.push(p.textContent.trim()));
+    const pl=prods.length?prods.join('、'):'全部好物';
+    if(tv==='custom'&&!tt)return showT('请输入自定义主题');
+    if(dv==='custom'&&!deal)return showT('请输入自定义优惠');
+
+    const T={
+      finals:{t:'期末冲刺·熬夜续命',h:'期末/考研党看过来，'+pl+'陪你奋战',c:'学生证免单一赠一！'},
+      opening:{t:'🎉 欢迎新同学',h:'开学第一杯就在'+curSchool+'南门！',c:'新生专属好礼！'},
+      graduation:{t:'🎓 毕业不说再见',h:'散伙饭必备！'+pl+'陪你告别校园',c:'毕业生专属，纪念青春'},
+      weekend:{t:'周末小聚·欢乐加倍',h:'室友闺蜜首选！'+pl+deal,c:'快约起来！'},
+      midterm:{t:'期中考·能量补给',h:'考前来一杯，'+pl+'助你超常发挥',c:'考完更要犒劳自己'},
+      military:{t:'☀️ 军训清凉站',h:'烈日下，'+pl+'送来清凉',c:'新生专属防暑福利'},
+      custom:{t:tt,h:pl+'限时特惠',c:'先到先得！'}
+    };
+    const tm=T[tv]||T.custom;
+
+    // 缓存文案数据，用于同步到售卖信息
+    lastGenCopy = {title:tm.t, products:prods, deal:deal, time:time, school:curSchool};
+
+    const c1='☕ '+tm.t+'\n\n'+tm.h+'\n'+tm.c+'\n⏰ '+time+'起！\n📍 '+curSchool;
+    const c2=tm.t+'‼️\n'+curSchool+'超值推荐：'+pl+deal+'！\n'+tm.h+'\n#'+curSchool+' #校园美食';
+    const c3='宝子们！'+time+'起 '+deal+'！\n'+tm.h+'\n📍 '+curSchool;
+
+    document.getElementById('outArea').innerHTML=
+      '<div class="out-card"><div class="out-label">📝 朋友圈 · '+tm.t+'</div><div class="out-text">'+c1+'</div><div class="out-actions"><div class="oa oa-blue" onclick="showT(\'✅ 已复制\')">复制</div><div class="oa oa-blue" onclick="showT(\'📷 海报生成\')">海报</div></div></div>'+
+      '<div class="out-card blue"><div class="out-label" style="color:#1e40af">📱 小红书</div><div class="out-text">'+c2+'</div><div class="out-actions"><div class="oa oa-purple" onclick="showT(\'✅ 已复制\')">复制</div></div></div>'+
+      '<div class="out-card green"><div class="out-label" style="color:#065f46">💬 群发</div><div class="out-text">'+c3+'</div><div class="out-actions"><div class="oa oa-green" onclick="showT(\'✅ 已复制\')">复制</div></div></div>'+
+      // V7 新品：同步到售卖信息按钮（醒目版）
+      '<div style="background:linear-gradient(135deg,#1A56DB,#8B5CF6);border-radius:16px;padding:28px 24px;margin-top:16px;text-align:center;box-shadow:0 4px 24px rgba(26,86,219,.35);animation:syncGlow 2s ease-in-out infinite;cursor:pointer" onclick="syncToSalesInfo()">'+
+        '<div style="font-size:36px;margin-bottom:10px;animation:syncBounce .8s ease-in-out infinite">📤</div>'+
+        '<div style="font-size:19px;font-weight:800;color:#fff;margin-bottom:6px">一键同步到售卖信息</div>'+
+        '<div style="font-size:12px;color:rgba(255,255,255,.78);line-height:1.6">将本次营销活动及文案同步至「售卖信息」面板<br>学生端即可看到你的最新推广活动</div>'+
+        '<div style="margin-top:14px"><span class="btn" style="background:rgba(255,255,255,.22);color:#fff;border:2px solid rgba(255,255,255,.5);font-size:14px;padding:12px 32px;border-radius:12px;display:inline-block;backdrop-filter:blur(4px)">🚀 立即同步</span></div>'+
+      '</div>'+
+      '<style>'+
+        '@keyframes syncGlow{0%,100%{box-shadow:0 4px 24px rgba(26,86,219,.35)}50%{box-shadow:0 6px 36px rgba(139,92,246,.55)}}'+
+        '@keyframes syncBounce{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}'+
+      '</style>';
+    showT('✅ 已生成3条文案！');
+  },500);
+}
+
+// V7 新品：同步营销文案到售卖信息
+function syncToSalesInfo(){
+  if(!lastGenCopy)return showT('请先生成营销文案');
+  const now = new Date();
+  const dateStr = now.getMonth()+1+'/'+now.getDate();
+  const shopName = document.getElementById('shopName').value || '老张的茶';
+  lastGenCopy.products.forEach(pn => {
+    if(!promoProducts.find(pp=>pp.name===pn)){
+      const prod = products.find(p=>p.name===pn);
+      let dealPrice = prod ? prod.price : 0;
+      // 根据优惠方式计算促销价
+      const d = lastGenCopy.deal;
+      if(/半价/.test(d)) dealPrice = dealPrice / 2;
+      else if(/8折/.test(d)) dealPrice = dealPrice * 0.8;
+      else if(/买一送一/.test(d)) dealPrice = dealPrice / 2;
+      else if(/满\d+减/.test(d)){ const m = d.match(/\d+/g); if(m&&m.length>=2) dealPrice = Math.max(dealPrice - parseInt(m[1]), dealPrice*0.6); }
+      else if(/特价/.test(d)){ const m = d.match(/¥(\d+)/); if(m) dealPrice = parseFloat(m[1]); }
+      else dealPrice = dealPrice * 0.7;
+      
+      promoProducts.push({
+        name: pn,
+        price: prod ? prod.price : 0,
+        dealPrice: Math.round(dealPrice*100)/100,
+        deal: lastGenCopy.deal,
+        time: lastGenCopy.time,
+        title: lastGenCopy.title,
+        date: dateStr,
+        shopName: shopName
+      });
+    }
+  });
+  lastGenCopy = null;
+  renderSalesInfo();
+  showT('✅ 已同步到售卖信息！学生端今日促销已更新');
+}
+
+// V7 新品：渲染售卖信息页面
+function renderSalesInfo(){
+  // 营销推广区 — 只显示当前店铺的推广产品
+  const promoEl = document.getElementById('promoList');
+  const currentShopName = document.getElementById('shopName').value || '老张的茶';
+  const myPromos = promoProducts.filter(pp=>pp.shopName===currentShopName);
+  if(myPromos.length===0){
+    promoEl.innerHTML = '<div class="record-empty">暂无推广产品 · 在「AI营销」生成文案后点击"同步到售卖信息"</div>';
+  } else {
+    promoEl.innerHTML = myPromos.map((pp,i)=>{
+      const idx = promoProducts.indexOf(pp);
+      return '<div class="sales-item" id="promo_'+idx+'">'+
+      '<div class="si-left">'+
+        '<span style="font-size:20px">📢</span>'+
+        '<div>'+
+          '<div class="si-name">'+pp.name+'</div>'+
+          '<div style="font-size:11px;color:var(--gray-500)">'+pp.title+' · '+pp.deal+' · '+pp.time+' · 添加于 '+pp.date+'</div>'+
+        '</div>'+
+      '</div>'+
+      '<div style="display:flex;align-items:center;gap:10px">'+
+        '<span class="si-tag badge-hot" style="background:#fef3c7;color:#92400e">推广中</span>'+
+        '<span class="si-price">¥'+(pp.dealPrice||pp.price).toFixed(1)+'</span>'+
+        '<span class="r-del" onclick="delPromo('+idx+')">✕</span>'+
+      '</div>'+
+    '</div>';
+    }).join('');
+  }
+  
+  // 产品报价表
+  const priceEl = document.getElementById('priceListTable');
+  priceEl.innerHTML = '<table class="price-table">'+
+    '<thead><tr><th>产品名称</th><th>售价</th><th>库存</th><th>标签</th><th>销量(近30天)</th><th>回头率</th></tr></thead>'+
+    '<tbody>'+
+    products.map(p=>'<tr>'+
+      '<td style="font-weight:600">'+p.name+'</td>'+
+      '<td class="pt-price">¥'+p.price.toFixed(1)+'</td>'+
+      '<td>'+(p.inv||0)+' 件</td>'+
+      '<td>'+(p.tag?'<span class="pt-tag '+(p.tag==='滞销'?'badge-slow':p.tag==='主推'?'badge-main':'badge-hot')+'">'+p.tag+'</span>':'—')+'</td>'+
+      '<td>'+p.sales+'</td>'+
+      '<td>'+p.retain+'%</td>'+
+    '</tr>').join('')+
+    '</tbody></table>';
+}
+
+// V7 新品：删除推广产品
+function delPromo(i){promoProducts.splice(i,1);renderSalesInfo();showT('已移除')}
+
+// ===== V7 数据同步：商户产品→shopsData =====
+function syncMerchantToShop(){
+  if(!merchantShopId) return;
+  const shop = shopsData.find(s=>s.id===merchantShopId);
+  if(!shop) return;
+  shop.products = products.map(p=>({
+    name: p.name, price: p.price, dealPrice: p.price, deal: '正常价', tag: p.tag||''
+  }));
+  // 更新促销商品的价格
+  promoProducts.forEach(pp => {
+    const prod = products.find(p=>p.name===pp.name);
+    if(prod){ pp.price = prod.price; }
+  });
+  renderDeals();
+  checkProductWarnings();
+}
+
+// 检查产品是否为空，显示/隐藏各页面警告
+function checkProductWarnings(){
+  const empty = !products || products.length === 0;
+  ['home','market','pricing','salesinfo'].forEach(id=>{
+    const el = document.getElementById('warn-'+id);
+    if(el) el.style.display = empty ? 'block' : 'none';
+  });
+}
+
+// ===== V7 重构：定价（含库存输入+天气） =====
+function updateWeather(){
+  const wt = document.getElementById('weatherType').value;
+  const t = parseInt(document.getElementById('weatherTempIn').value)||28;
+  weatherState = {type:wt, temp:t};
+  const icons = {sunny:'☀️',cloudy:'⛅',rainy:'🌧️',snowy:'❄️',hot:'🔥',cold:'🥶'};
+  // 描述基于实际温度
+  let desc = '', tip = '';
+  if(t>=35){desc='高温预警 · 体感'+(t+3)+'°C · 湿度35%';tip='🔥 冷饮爆单！建议提价10-15% · 备足冰块';}
+  else if(t>=28){desc='炎热 · 体感'+(t+1)+'°C · 湿度50%';tip='📈 冷饮需求旺盛↑25% · 冰饮可适度提价';}
+  else if(t>=22){desc='舒适 · 体感'+t+'°C · 湿度55%';tip='📊 需求平稳 · 正常定价即可';}
+  else if(t>=15){desc='凉爽 · 体感'+t+'°C · 湿度60%';tip='☕ 奶茶热饮开始走俏 · 可搭配温饮';}
+  else if(t>=5){desc='偏冷 · 体感'+(t-2)+'°C · 湿度65%';tip='🥶 热饮需求↑20% · 建议主推热饮';}
+  else{desc='寒冷 · 体感'+(t-5)+'°C · 湿度55%';tip='☕ 热饮刚需↑40% · 热饮可适度提价';}
+  // 天气类型叠加
+  if(wt==='rainy'){desc+=' · 降雨';tip+='；🌧️ 降雨客流↓ → 建议降价15%保销量';}
+  else if(wt==='snowy'){desc+=' · 降雪';tip+='；❄️ 暴雪客流↓ → 建议降价20%刺激消费';}
+  else if(wt==='hot'){desc='高温预警 · 体感'+(t+4)+'°C · 湿度30%';tip='🔥 冷饮爆单！冰饮提价12% · 冰块备足！';}
+  else if(wt==='cold'){desc='寒潮 · 体感'+(t-10)+'°C · 湿度45%';tip='☕ 热饮爆单！热饮提价10% · 暖食搭配促销';}
+
+  document.getElementById('weatherIcon').textContent = icons[wt]||'☀️';
+  document.getElementById('weatherTemp').textContent = t+'°C';
+  document.getElementById('weatherDesc').textContent = desc;
+  document.getElementById('weatherTip').textContent = tip;
+  document.getElementById('pricingWeatherCtx').innerHTML = '🌡️ <strong>天气:</strong> '+(icons[wt]||'☀️')+t+'°C · '+tip.split('·')[0].replace('；','');
+  renderPricing();
+}
+
+// V7 重构：库存输入在定价页面实时修改
+function updateInv(i, v){
+  const val = parseInt(v)||0;
+  products[i].inv = Math.max(0,val);
+  // 重新渲染定价卡片（不刷新整个页面）
+  renderPricing();
+}
+
+function renderPricing(){
+  const el=document.getElementById('pricingList');
+  const wt = weatherState.type;
+  const temp = weatherState.temp;
+  
+  // ===== 天气系数：温度驱动 + 天气类型叠加 =====
+  let weatherCoef = 1.00, weatherDetail = '';
+  if(temp >= 35){ weatherCoef = 1.15; weatherDetail = '极热·冷饮暴涨↑15%'; }
+  else if(temp >= 30){ weatherCoef = 1.10; weatherDetail = '酷热·冷饮旺↑10%'; }
+  else if(temp >= 28){ weatherCoef = 1.06; weatherDetail = '炎热·冰饮好卖↑6%'; }
+  else if(temp >= 22){ weatherCoef = 1.02; weatherDetail = '舒适·需求微涨↑2%'; }
+  else if(temp >= 15){ weatherCoef = 1.00; weatherDetail = '正常·需求平稳'; }
+  else if(temp >= 8){ weatherCoef = 0.94; weatherDetail = '偏凉·热饮走俏↓6%'; }
+  else if(temp >= 0){ weatherCoef = 0.88; weatherDetail = '寒冷·客流↓12%'; }
+  else{ weatherCoef = 0.82; weatherDetail = '严寒·客流大降↓18%'; }
+  
+  // 天气类型叠加调整
+  if(wt==='rainy'){ weatherCoef -= 0.10; weatherDetail += '+降雨↓10%'; }
+  else if(wt==='snowy'){ weatherCoef -= 0.15; weatherDetail += '+暴雪↓15%'; }
+  else if(wt==='hot'){ weatherCoef = Math.max(weatherCoef, 1.15); weatherDetail = '高温预警·冷饮爆单↑15%'; }
+  else if(wt==='cold'){ weatherCoef = Math.max(weatherCoef, 1.08); weatherDetail = '寒潮·热饮爆单↑8%'; }
+  weatherCoef = Math.max(0.65, Math.min(1.25, weatherCoef)); // 钳制在0.65-1.25
+  
+  // 时间系数（不同产品受时间影响不同）
+  const timeLabel = '期末考试周(日间)';
+  
+  el.innerHTML=products.map(p=>{
+    const inv = p.inv||0;
+    const basePrice = p.basePrice || p.price; // 基准价（成本价或初始定价）
+    
+    // ===== 库存系数：细分化 =====
+    let invCoef = 1.00, invLabel = '';
+    if(inv <= 15){ invCoef = 1.20; invLabel = '紧缺<15件(↑20%)'; }
+    else if(inv <= 30){ invCoef = 1.12; invLabel = '偏紧<30件(↑12%)'; }
+    else if(inv <= 50){ invCoef = 1.07; invLabel = '略紧<50件(↑7%)'; }
+    else if(inv <= 150){ invCoef = 1.00; invLabel = '正常50-150件'; }
+    else if(inv <= 250){ invCoef = 0.92; invLabel = '积压>150件(↓8%)'; }
+    else if(inv <= 400){ invCoef = 0.85; invLabel = '严重积压>250件(↓15%)'; }
+    else{ invCoef = 0.75; invLabel = '急需清仓>400件(↓25%)'; }
+    
+    // ===== 竞争/时间系数 =====
+    let compCoef = 1.00, compLabel = '';
+    if(p.tag==='滞销'){ compCoef = 0.70; compLabel = '滞销品·清仓降价↓30%'; }
+    else if(p.tag==='引流'){ compCoef = 0.85; compLabel = '引流品·薄利多销↓15%'; }
+    else if(p.tag==='主推'||p.tag==='爆款'){ compCoef = 0.95; compLabel = '热门品·竞争促销↓5%'; }
+    else{ compCoef = 0.94; compLabel = '普通品·微降↓6%'; }
+    
+    // 单品时间系数
+    let timeCoef = 0.90;
+    if(p.tag==='滞销') timeCoef = 0.80; // 滞销品考试周更难卖
+    else if(p.name.includes('茶')||p.name.includes('奶茶')||p.name.includes('咖啡')) timeCoef = 0.88; // 下午茶需求降
+    
+    // ===== 最终建议价 =====
+    const raw = basePrice * timeCoef * compCoef * invCoef * weatherCoef;
+    const sug = Math.round(raw*10)/10;
+    const change = sug - p.price;
+    const changePct = ((change/p.price)*100).toFixed(1);
+    const isUp = change > 0;
+    
+    // 建议理由（展示完整计算过程）
+    const reasons = [
+      '💰 基准成本价: ¥'+basePrice.toFixed(1),
+      '📅 时间系数 ×'+timeCoef.toFixed(2)+' ('+timeLabel+')',
+      '🏷️ 品类系数 ×'+compCoef.toFixed(2)+' ('+compLabel+')',
+      '📦 库存系数 ×'+invCoef.toFixed(2)+' ('+invLabel+')',
+      '🌡️ 天气系数 ×'+weatherCoef.toFixed(2)+' ('+weatherDetail+')',
+      '📐 建议价 = '+basePrice.toFixed(1)+' × '+timeCoef.toFixed(2)+' × '+compCoef.toFixed(2)+' × '+invCoef.toFixed(2)+' × '+weatherCoef.toFixed(2)+' = <b>¥'+sug.toFixed(1)+'</b>'
+    ];
+    
+    return '<div class="pricing-card"><div class="pricing-head"><div class="pricing-name">'+p.name+(p.tag?' <span class="badge '+(p.tag==='滞销'?'badge-slow':p.tag==='主推'?'badge-main':'badge-hot')+'">'+p.tag+'</span>':'')+'</div></div>'+
+      '<div class="price-compare"><div class="price-box cur"><div class="pb-label">当前售价</div><div class="pb-value">¥'+p.price.toFixed(1)+'</div></div><div class="price-box sug"><div class="pb-label">AI建议价</div><div class="pb-value" style="color:'+(isUp?'var(--green)':'var(--red)')+'">¥'+sug.toFixed(1)+'</div><div style="font-size:12px;font-weight:600;margin-top:4px;color:'+(isUp?'var(--green)':'var(--red)')+'">'+(isUp?'↑':'↓')+Math.abs(changePct)+'%</div></div></div>'+
+      '<div style="background:var(--gray-50);border-radius:10px;padding:10px 14px;margin-bottom:12px">'+
+        '<div class="inv-row">'+
+          '<label>📦 当前库存:</label>'+
+          '<input type="number" value="'+inv+'" min="0" onchange="updateInv('+products.indexOf(p)+',this.value)" style="width:80px">'+
+          '<span style="font-size:11px;color:var(--gray-500)">件</span>'+
+          '<span style="font-size:11px;color:'+(inv>250?'var(--red)':inv<30?'var(--orange)':'var(--green)')+';font-weight:600;margin-left:8px">'+invLabel+'</span>'+
+        '</div>'+
+      '</div>'+
+      '<div class="price-reasons">'+reasons.map(r=>'<div style="display:flex;gap:8px;margin-bottom:3px;font-size:11px"><span style="color:var(--green);flex-shrink:0">✓</span>'+r+'</div>').join('')+'</div>'+
+      '<div style="display:flex;gap:10px;margin-top:12px"><button class="btn btn-primary btn-sm" onclick="applySuggest('+products.indexOf(p)+','+sug.toFixed(1)+')">采纳建议</button><button class="btn btn-ghost btn-sm" onclick="editPrice('+products.indexOf(p)+')">手动调价</button></div></div>';
+  }).join('')+'<div style="text-align:center;padding:14px;color:var(--gray-500);font-size:12px;background:var(--gray-50);border-radius:12px;">🧮 <b>智能定价引擎 v3</b>：建议价 = 基准成本价 × 时间系数 × 品类系数 × 库存系数 × 天气系数<br>温度每变化1°C实时影响定价 · 库存动态计算 · 基于成本价非当前价（不会越降越低）</div>';
+}
+
+// V7 新品：快速采纳建议价
+function applySuggest(i, price){
+  products[i].price = price;
+  // 同步到后端
+  const prod = products[i];
+  if(prod.id && merchantShopId){
+    fetch(apiBase+'/api/products/'+merchantShopId+'/'+prod.id, {
+      method:'PUT', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({price:price})
+    }).catch(()=>{});
+  }
+  syncMerchantToShop();
+  renderAll();
+  showT('✅ 已采纳建议价 ¥'+price.toFixed(1));
+}
+
+// ===== V7 新品：报表手动录入 =====
+
+function addSalesRecord(){
+  const d = document.getElementById('recDate').value;
+  const rev = parseFloat(document.getElementById('recRevenue').value);
+  const ord = parseInt(document.getElementById('recOrders').value)||0;
+  const note = document.getElementById('recNote').value.trim();
+  if(!d)return showT('请选择日期');
+  if(isNaN(rev)||rev<0)return showT('请输入有效营业额');
+  salesRecords.push({date:d, revenue:rev, orders:ord, note:note||'—'});
+  document.getElementById('recRevenue').value='';
+  document.getElementById('recOrders').value='';
+  document.getElementById('recNote').value='';
+  renderRecords();
+  updateReportStats();
+  updateHeroStats();
+  showT('✅ 已录入 ¥'+rev.toFixed(2));
+}
+
+function delSalesRec(i){salesRecords.splice(i,1);renderRecords();updateReportStats();updateHeroStats();showT('已删除')}
+
+function renderRecords(){
+  const tbody = document.getElementById('recordBody');
+  if(salesRecords.length===0){
+    tbody.innerHTML = '<tr><td colspan="6" class="record-empty">暂无手动录入数据 · 上方表单录入</td></tr>';
+  } else {
+    // 按日期倒序
+    const sorted = [...salesRecords].sort((a,b)=>b.date.localeCompare(a.date));
+    tbody.innerHTML = sorted.map((r,i)=>{
+      const origIdx = salesRecords.indexOf(r);
+      const avgPrice = r.orders>0?(r.revenue/r.orders).toFixed(1):'—';
+      return '<tr><td>'+r.date+'</td><td style="font-weight:600">¥'+r.revenue.toFixed(2)+'</td><td>'+r.orders+'</td><td>¥'+avgPrice+'</td><td style="font-size:12px;color:var(--gray-500)">'+r.note+'</td><td><span class="r-del" onclick="delSalesRec('+origIdx+')">✕</span></td></tr>';
+    }).join('');
+  }
+}
+
+function updateReportStats(){
+  const totalRev = 48920 + salesRecords.reduce((s,r)=>s+r.revenue,0);
+  const totalOrd = 1847 + salesRecords.reduce((s,r)=>s+r.orders,0);
+  const avgPrice = totalOrd>0?(totalRev/totalOrd).toFixed(1):'0';
+  document.getElementById('reportStats').innerHTML =
+    '<div class="stat-card"><div class="sc-val">¥'+totalRev.toLocaleString()+'</div><div class="sc-lbl">总营收（含手动录入）</div><div class="sc-ch sc-up">↑ 18%</div></div>'+
+    '<div class="stat-card"><div class="sc-val">'+totalOrd.toLocaleString()+'</div><div class="sc-lbl">订单数</div><div class="sc-ch sc-up">↑ 22%</div></div>'+
+    '<div class="stat-card"><div class="sc-val">'+(412+salesRecords.length)+'</div><div class="sc-lbl">新客户</div><div class="sc-ch sc-up">↑ 47%</div></div>'+
+    '<div class="stat-card"><div class="sc-val">¥'+avgPrice+'</div><div class="sc-lbl">客单价</div><div class="sc-ch sc-up">↑ 5%</div></div>';
+}
+
+// V7 新品：首页Hero数据同步手动录入 + 后端统计API
+function updateHeroStats(){
+  const today = new Date().toISOString().split('T')[0];
+  let todayRev = 2156, todayOrd = 83;
+  salesRecords.forEach(r => {
+    if(r.date === today){ todayRev = r.revenue; todayOrd = r.orders; }
+  });
+  document.getElementById('heroTodayRev').textContent = '¥'+todayRev.toLocaleString();
+  document.getElementById('heroTodayOrd').textContent = todayOrd;
+}
+
+// ===== 学生端 =====
+function order(id){showT('🛒 打开下单页面...')}
+function shareIt(){showT('📤 已生成分享链接！对方下单你赚佣金')}
+
+// ===== V7 学生端：今日促销渲染 =====
+function renderDeals(){
+  const grid = document.getElementById('dealGrid');
+  // 从商户端同步的营销推广产品中读取（syncToSalesInfo填充）
+  if(promoProducts.length===0){
+    grid.innerHTML = '<div class="record-empty">暂无促销商品 · 等待商家发布</div>';
+    document.getElementById('dealsHeroSub').textContent = '暂无促销商品 · 等待商家发布';
+    document.getElementById('dsTodayStats').innerHTML = '<div style="font-size:13px;opacity:.85">📊 等待商家添加产品</div>';
+    return;
+  }
+  // 按当前学校筛选：只显示该学校附近店铺的促销
+  let dealsBySchool = promoProducts.filter(d=>{
+    const shop = shopsData.find(s=>s.name===d.shopName);
+    if(!shop||!shop.school) return true; // 无学校信息的显示
+    return shop.school===curSchool || shop.school.includes(curSchool) || curSchool.includes(shop.school);
+  });
+  let showDealsFallback = false;
+  const dMatched = dealsBySchool.length;
+  if(dMatched===0){
+    dealsBySchool = promoProducts;
+    showDealsFallback = true;
+  }
+  // 更新 deals hero 提示
+  const dSub = document.getElementById('dealsHeroSub');
+  const dHero = document.getElementById('dealsHero');
+  if(dSub){
+    if(showDealsFallback){
+      const oldWarn = dHero.querySelector('.hero-warn');
+      if(oldWarn) oldWarn.remove();
+      const warnEl = document.createElement('div');
+      warnEl.className = 'hero-warn';
+      warnEl.style.cssText = 'background:rgba(255,255,255,.18);border-radius:14px;padding:14px 20px;font-size:14px;line-height:1.7;flex-shrink:0;text-align:center;margin-left:auto';
+      warnEl.innerHTML = '⚠️ 你所筛选的学校附近<br>暂无特价商品<br>故显示其他区域商品';
+      dHero.appendChild(warnEl);
+      dSub.textContent = '每日更新 · 点击卡片查看店铺完整售卖信息';
+    } else {
+      const oldWarn = dHero.querySelector('.hero-warn');
+      if(oldWarn) oldWarn.remove();
+      dSub.textContent = '每日更新 · 点击卡片查看店铺完整售卖信息';
+    }
+  }
+  document.getElementById('dsTodayStats').innerHTML = '<div style="font-size:13px;opacity:.85">📊 今日 <b>'+dealsBySchool.length+'</b> 个特价商品 · 覆盖 <b>'+new Set(dealsBySchool.map(d=>d.shopName)).size+'</b> 家店铺</div>';
+  grid.innerHTML = dealsBySchool.map(d => {
+    // 从shopsData查找店铺信息
+    let shop = shopsData.find(s=>s.name===d.shopName) || shopsData[0];
+    // 查找产品真实信息
+    let prod = null;
+    if(shop) prod = shop.products.find(p=>p.name===d.name);
+    const origPrice = prod ? prod.price : d.price;
+    const dealPrice = d.dealPrice || (origPrice * 0.6);
+    return '<div class="deal-card" onclick="viewShop(\''+(shop?shop.id:'zhangtea')+'\')">'+
+      // 上部：店铺信息区
+      '<div style="display:flex;align-items:flex-start;padding:18px 16px 14px;gap:12px;border-bottom:1px solid var(--gray-100)">'+
+        '<div class="dc-shop-avatar" style="background:'+(shop?shop.color:'#f97316')+';flex-shrink:0">'+(shop?shop.emoji:'🧋')+'</div>'+
+        '<div style="flex:1;min-width:0">'+
+          '<div style="font-size:14px;font-weight:700;color:var(--gray-800);margin-bottom:3px">'+(d.shopName||shop?shop.name:'商家')+'</div>'+
+          '<div style="font-size:11px;color:var(--gray-500);margin-top:2px">📍 '+(shop?shop.addr:'东北大学南门')+'</div>'+
+        '</div>'+
+        '<span style="font-size:11px;background:#fef3c7;color:#92400e;padding:4px 10px;border-radius:8px;font-weight:700;flex-shrink:0">限时优惠</span>'+
+      '</div>'+
+      // 下部：商品信息区
+      '<div style="padding:18px 16px 20px">'+
+        '<div style="font-size:16px;font-weight:700;color:var(--gray-900);margin-bottom:10px;line-height:1.5">'+d.name+'</div>'+
+        '<div style="display:flex;align-items:baseline;gap:10px;margin-bottom:12px">'+
+          '<span style="font-size:22px;font-weight:800;color:#f97316">¥'+dealPrice.toFixed(2)+'</span>'+
+          '<span style="font-size:13px;color:var(--gray-400);text-decoration:line-through">¥'+origPrice.toFixed(1)+'</span>'+
+        '</div>'+
+        '<div style="font-size:13px;color:var(--gray-600);margin-bottom:16px;line-height:1.7">🎁 '+d.deal+' · '+d.title+'</div>'+
+        '<div style="display:flex;justify-content:flex-end">'+
+          '<span class="nav-btn" onclick="event.stopPropagation();navigateTo(\''+(shop?shop.dist:'120m')+'\',\''+(shop?shop.name:'商家')+'\',\''+(shop?shop.addr:'东北大学南门')+'\')" style="font-size:12px">🧭 导航到店</span>'+
+        '</div>'+
+      '</div>'+
+    '</div>';
+  }).join('');
+}
+
+// ===== V7 学生端：附近店铺列表 =====
+function renderShops(){
+  const grid = document.getElementById('shopGrid');
+  // 按当前学校筛选店铺
+  let filtered = shopsData.filter(s => !s.school || s.school===curSchool || s.school.includes(curSchool) || curSchool.includes(s.school));
+  let showFallback = false;
+  const matchedCount = filtered.length;
+  if(matchedCount < 3){
+    filtered = shopsData;
+    showFallback = true;
+  }
+  // 更新蓝色 hero 区的提示
+  const subEl = document.getElementById('shopsHeroSub');
+  const heroDiv = document.getElementById('shopsHero');
+  if(subEl){
+    if(showFallback){
+      const oldWarn = heroDiv.querySelector('.hero-warn');
+      if(oldWarn) oldWarn.remove();
+      const warnEl = document.createElement('div');
+      warnEl.className = 'hero-warn';
+      warnEl.style.cssText = 'background:rgba(255,255,255,.18);border-radius:14px;padding:14px 20px;font-size:14px;line-height:1.7;flex-shrink:0;text-align:center';
+      warnEl.innerHTML = '⚠️ 你所筛选的学校附近仅<br><b style="font-size:26px">'+matchedCount+'</b> 家商铺<br>故显示其他区域商户';
+      heroDiv.appendChild(warnEl);
+      subEl.textContent = '点击店铺查看完整售卖信息 · 到店导航';
+    } else {
+      const oldWarn = heroDiv.querySelector('.hero-warn');
+      if(oldWarn) oldWarn.remove();
+      subEl.textContent = '点击店铺查看完整售卖信息 · 到店导航';
+    }
+  }
+  grid.innerHTML = filtered.map(s => {
+    const dealCount = s.products.filter(p=>p.dealPrice!==undefined&&p.deal!=='正常价').length;
+    return '<div class="shop-card" onclick="viewShop(\''+s.id+'\')">'+
+      '<div class="shop-cover" style="background:linear-gradient(135deg,'+s.color+'22,'+s.color+'44)">'+
+        '<span style="font-size:44px">'+s.emoji+'</span>'+
+        '<span class="sc-dist">'+s.dist+'</span>'+
+      '</div>'+
+      '<div class="shop-info">'+
+        '<div class="si-row"><span class="si-name">'+s.name+'</span><span class="si-type">'+s.type+'</span></div>'+
+        '<div class="si-addr">📍 '+s.addr+'</div>'+
+        '<div class="si-desc">'+s.desc+'</div>'+
+        '<div class="shop-tags">'+
+          (dealCount>0?'<span class="st atag-hot">🔥 '+dealCount+'个促销</span>':'')+
+          s.tags.map(t=>'<span class="st '+t.c+'">'+t.t+'</span>').join('')+
+        '</div>'+
+        '<div style="display:flex;justify-content:flex-end;margin-top:6px"><span class="nav-btn" onclick="event.stopPropagation();navigateTo(\''+s.dist+'\',\''+s.name+'\',\''+s.addr+'\')">🧭 导航到店</span></div>'+
+      '</div>'+
+    '</div>';
+  }).join('');
+}
+
+// ===== V7 学生端：查看店铺详情（售卖信息） =====
+function viewShop(shopId){
+  const s = shopsData.find(x=>x.id===shopId);
+  if(!s)return;
+  currentShopDetail = s;
+  
+  // 统一从 shopsData 读取产品数据（已被 syncMerchantToShop 同步）
+  const displayProducts = s.products;
+  
+  // 从 promoProducts 获取该店铺的促销信息
+  const shopPromos = promoProducts.filter(pp=>pp.shopName===s.name||(!pp.shopName&&s.name==='老张的茶'));
+  
+  document.getElementById('sdmTitle').innerHTML = s.emoji+' '+s.name+' — 售卖信息';
+  const body = document.getElementById('sdmBody');
+  body.innerHTML = 
+    '<div style="background:var(--gray-50);border-radius:12px;padding:14px 18px;margin-bottom:16px;display:flex;gap:14px">'+
+      '<div style="flex:1">'+
+        '<div style="display:flex;align-items:center;gap:10px;margin-bottom:6px">'+
+          '<div style="width:40px;height:40px;border-radius:50%;background:'+s.color+';display:flex;align-items:center;justify-content:center;font-size:20px;color:#fff;flex-shrink:0">'+s.emoji+'</div>'+
+          '<div><div style="font-size:16px;font-weight:700">'+s.name+'</div><div style="font-size:12px;color:var(--gray-500)">'+s.type+' · '+s.dist+'</div></div>'+
+        '</div>'+
+        '<div style="font-size:12px;color:var(--gray-500);margin-bottom:4px">📍 '+s.addr+' <span class="nav-btn" onclick="navigateTo(\''+s.dist+'\',\''+s.name+'\',\''+s.addr+'\')">🧭 导航到店</span></div>'+
+        '<div style="font-size:12px;color:var(--gray-700)">'+s.desc+'</div>'+
+      '</div>'+
+      '<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;flex-shrink:0">'+
+        '<div style="width:52px;height:52px;border-radius:50%;background:linear-gradient(135deg,#1A56DB,#6366f1);display:flex;align-items:center;justify-content:center;font-size:24px;color:#fff;cursor:pointer;box-shadow:0 4px 16px rgba(26,86,219,.35);transition:all .2s;animation:syncBounce .8s ease-in-out infinite" onclick="openChatFromDetail()" title="联系商家">💬</div>'+
+        '<div style="font-size:11px;font-weight:700;color:var(--blue);cursor:pointer" onclick="openChatFromDetail()">联系商家</div>'+
+      '</div>'+
+    '</div>'+
+    
+    // 促销活动区 — 从 promoProducts 读取
+    '<div class="sales-section" style="margin-bottom:14px;border:2px solid #fde68a;background:linear-gradient(135deg,#fffbeb,#fef3c7)">'+
+      '<div class="ss-head"><span class="ss-icon">🔥</span><span class="ss-title" style="color:#92400e">今日促销活动</span><span style="margin-left:auto;font-size:11px;color:#b45309;font-weight:700">限时特惠</span></div>'+
+      (shopPromos.length===0 ? 
+        '<div class="record-empty">今日暂无促销活动</div>' :
+        shopPromos.map(pp=>
+          '<div class="sales-item" style="background:#fff;border:1.5px solid #fde68a">'+
+            '<div class="si-left" style="gap:12px">'+
+              '<span style="font-size:28px">🏷️</span>'+
+              '<div>'+
+                '<div class="si-name" style="font-size:16px">'+pp.name+'</div>'+
+                '<div style="font-size:14px;font-weight:800;color:#b45309;background:#fef3c7;padding:4px 12px;border-radius:8px;display:inline-block;margin-top:4px">🎁 '+pp.deal+'</div>'+
+              '</div>'+
+            '</div>'+
+            '<div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px">'+
+              '<span style="font-size:12px;color:var(--gray-400);text-decoration:line-through">原价 ¥'+(pp.price||0).toFixed(1)+'</span>'+
+              '<span class="si-price" style="font-size:22px">¥'+(pp.dealPrice||pp.price||0).toFixed(2)+'</span>'+
+              '<button class="btn btn-orange" onclick="showT(\'🛒 已加购 '+pp.name+'\')" style="padding:8px 20px;font-size:14px">🛒 下单</button>'+
+            '</div>'+
+          '</div>'
+        ).join('')
+      )+
+    '</div>'+
+    
+    // 全部产品报价 — 从 displayProducts 读取
+    '<div class="sales-section">'+
+      '<div class="ss-head"><span class="ss-icon">📋</span><span class="ss-title">全部产品报价</span></div>'+
+      '<table class="price-table">'+
+        '<thead><tr><th>产品</th><th>售价</th><th>标签</th></tr></thead>'+
+        '<tbody>'+
+        displayProducts.map(p=>'<tr>'+
+          '<td style="font-weight:600">'+p.name+'</td>'+
+          '<td class="pt-price" style="color:var(--gray-900)">¥'+p.price.toFixed(1)+'</td>'+
+          '<td>'+(p.tag?'<span class="'+(p.tag==='滞销'?'badge-slow':p.tag==='主推'?'badge-main':'badge-hot')+'">'+p.tag+'</span>':'—')+'</td>'+
+        '</tr>').join('')+
+        '</tbody>'+
+      '</table>'+
+    '</div>';
+  openModal('shopDetailModal');
+}
+
+// ===== V7 AI智能回复引擎 v2（意图分类+产品上下文+自然对话） =====
+function aiReply(userMsg, shop){
+  const msg = userMsg.trim();
+  const promos = shop.products.filter(p=>p.deal!=='正常价');
+  const topProduct = shop.products[0];
+  
+  // 从消息中提取提及的产品名
+  function findProduct(text){
+    for(const p of shop.products){
+      // 至少匹配2个连续字符
+      for(let i=0;i<=p.name.length-2;i++){
+        if(text.includes(p.name.slice(i,i+2))) return p;
+      }
+    }
+    return null;
+  }
+  
+  const mentioned = findProduct(msg);
+  const topPromo = promos.length>0 ? promos[0] : null;
+  
+  // ===== 意图分类 =====
+  
+  // 1. 问候
+  if(/^(你好|hi|hello|在吗|在么|哈喽|嗨)/i.test(msg) || (/^(你好|hi|hello|在吗|在么|哈喽|嗨)/i.test(msg) && msg.length<8)){
+    const greeting = '你好呀！'+shop.emoji+' '+shop.name+'在线~ '+
+      (topPromo ? '今天'+topPromo.name+topPromo.deal+'只要¥'+topPromo.dealPrice.toFixed(1)+'哦！有什么可以帮你？' : '有什么可以帮你的？');
+    return greeting;
+  }
+  
+  // 2. 询问具体产品
+  if(mentioned){
+    const p = mentioned;
+    if(p.deal && p.deal!=='正常价'){
+      return '有的！'+p.name+'原价¥'+p.price.toFixed(1)+'，今天搞活动'+p.deal+'，只要<b>¥'+p.dealPrice.toFixed(1)+'</b>！超划算的，来一份？';
+    }
+    return p.name+'有货的~ ¥'+p.price.toFixed(1)+'一份。要不要帮您留着？';
+  }
+  
+  // 3. 问营业时间
+  if(/几点|营业|开门|关门|时间|啥时候/.test(msg)){
+    return '我们营业时间：<b>早9:00 ~ 晚23:30</b>，周末也开！现在过来刚好来得及~';
+  }
+  
+  // 4. 问优惠/省钱
+  if(/优惠|便宜|打折|特价|划算|省钱|促销|活动/.test(msg)){
+    if(promos.length===0) return '目前暂时没有特别活动哦，但常来有惊喜！或者关注我们店铺页面，有活动第一时间通知~';
+    const list = promos.map(p=>'🔸 '+p.name+' — '+p.deal+'（原价¥'+p.price.toFixed(1)+' → ¥'+p.dealPrice.toFixed(1)+'）').join('\n');
+    return '今天的优惠活动来啦🔥：\n'+list+'\n\n看中哪个直接来店里出示学生证就行~';
+  }
+  
+  // 5. 问位置/导航
+  if(/位置|在哪|哪里|导航|怎么走|地址/.test(msg)){
+    return '我们在<b>'+shop.addr+'</b>，离你大概'+shop.dist+'。你点左下角「🧭导航到店」用百度地图直接导过来，很方便！';
+  }
+  
+  // 6. 问配送
+  if(/送|外卖|配送|外送|到寝/.test(msg)){
+    return '目前只支持<b>到店自取</b>哦~ 不过离'+curSchool+'很近的！走路也就几分钟，现买更新鲜好吃 😋';
+  }
+  
+  // 7. 问菜单
+  if(/菜单|有什么|卖什么|产品|吃的|喝的/.test(msg)){
+    const list = shop.products.map(p=>{
+      const deal = (p.deal&&p.deal!=='正常价')?' ['+p.deal+'¥'+p.dealPrice.toFixed(1)+']':'';
+      return p.name+' ¥'+p.price.toFixed(1)+deal;
+    }).join('\n');
+    return shop.name+'的菜单如下🍽️：\n'+list+'\n\n标了价格的就能买，有[]的是今日优惠价！';
+  }
+  
+  // 8. 问能否到店/留位
+  if(/有没有|还有吗|现货|到店|预留|留/.test(msg)){
+    return '有的有的！我们现在货很足，你直接过来就行。如果担心可以告诉我留一份，到了说"店小满预定的"就行~';
+  }
+  
+  // 9. 结束语
+  if(/谢谢|感谢|拜拜|再见|好的|OK|ok|嗯嗯/.test(msg)){
+    return '不客气！有事随时找我，在店里等你哦~ 😊';
+  }
+  
+  // ===== 默认对话：结合店铺上下文的自然回复 =====
+  const prompts = [
+    '我是店小满AI助手，'+shop.name+'的专属客服! 💡\n你可以问我：\n• 有什么优惠活动？\n• 营业时间是几点？\n• '+topProduct.name+'还有吗？\n• 怎么导航到店？\n\n直接问我，秒回！',
+    '在的！'+shop.name+'今天有'+promos.length+'个优惠活动中~ 你想了解哪款产品？像"'+topProduct.name+'怎么卖"这样直接问我就好~',
+    '哈喽！你要找'+(promos.length>0?'优惠最大的':'最火的')+'产品吗？目前最推荐的是<b>'+topProduct.name+'</b>（¥'+topProduct.price.toFixed(1)+'），要不要来一份？'
+  ];
+  return prompts[Math.floor(Math.random()*prompts.length)];
+}
+
+// ===== V7 学生端：百度地图导航 =====
+function navigateTo(dist, name, addr){
+  const destQuery = addr || name || curSchool;
+  const dest = encodeURIComponent(destQuery);
+  // 百度地图搜索页面
+  window.open('https://map.baidu.com/search/'+dest, '_blank');
+  showT('🧭 已打开百度地图 · 约 '+dist);
+}
+
+// ===== V7 聊天系统 =====
+let chatMessages = {};     // key: shopId → [{from:'student'|'merchant',text,time}]
+let activeShopChat = null;  // 当前聊天的店铺ID
+let activeShopInfo = null;  // 缓存店铺标题信息 {name,emoji,color}
+let currentShopDetail = null; // 当前查看的店铺详情（用于联系商家按钮）
+
+function openChatFromDetail(){
+  if(!currentShopDetail) return;
+  closeM('shopDetailModal');
+  openChat(currentShopDetail.id, currentShopDetail.name, currentShopDetail.emoji, currentShopDetail.color);
+}
+
+function openChat(shopId, shopName, emoji, color){
+  activeShopChat = shopId;
+  if(!chatMessages[shopId]) chatMessages[shopId] = [];
+  // 缓存店铺信息用于标题显示
+  if(shopName) activeShopInfo = {name:shopName,emoji,color};
+  const sn = activeShopInfo ? activeShopInfo.name : '商家';
+  const se = activeShopInfo ? activeShopInfo.emoji : '💬';
+  document.getElementById('chatTitle').innerHTML = se+' '+sn+' — 在线咨询';
+  const msgs = document.getElementById('chatMsgs');
+  const msgs_arr = chatMessages[shopId];
+  if(msgs_arr.length===0){
+    msgs.innerHTML = '<div style="text-align:center;color:var(--gray-400);padding:40px;font-size:13px">💬 发送消息，开始与商家实时沟通<br><span style="font-size:11px;margin-top:4px;display:block">商家通常在2分钟内回复</span></div>';
+  } else {
+    msgs.innerHTML = msgs_arr.map(m=>{
+      let cls='cb-left', lbl='你';
+      if(m.from==='merchant'){cls='cb-shop';lbl=sn;}
+      return '<div class="chat-bub '+cls+'"><div>'+m.text+'</div><div class="cb-meta"><span>'+lbl+'</span><span>'+m.time+'</span></div></div>';
+    }).join('');
+    msgs.scrollTop = msgs.scrollHeight;
+  }
+  openModal('chatModal');
+  renderMerchantConvs();
+}
+
+function sendChatMsg(){
+  const inp = document.getElementById('chatInput');
+  const text = inp.value.trim();
+  if(!text || !activeShopChat) return;
+  const now = new Date();
+  const time = ('0'+now.getHours()).slice(-2)+':'+('0'+now.getMinutes()).slice(-2);
+  chatMessages[activeShopChat].push({from:'student',text,time});
+  inp.value = '';
+  // 刷新聊天窗口
+  openChat(activeShopChat, '', '', '');
+  // 1.5秒后 AI 智能回复
+  const shop = shopsData.find(s=>s.id===activeShopChat);
+  if(shop){
+    setTimeout(()=>{
+      const reply = aiReply(text, shop);
+      const t2 = new Date();
+      chatMessages[activeShopChat].push({from:'merchant',text:reply,time:('0'+t2.getHours()).slice(-2)+':'+('0'+t2.getMinutes()).slice(-2)});
+      if(document.getElementById('chatModal').classList.contains('show')) openChat(activeShopChat, '', '', '');
+      renderMerchantConvs();
+    }, 1200);
+  }
+  renderMerchantConvs();
+}
+
+// 商户端：发送回复
+function sendMerchantMsg(){
+  if(!activeShopChat) return showT('请先选择会话');
+  const inp = document.getElementById('mChatInput');
+  const text = inp.value.trim();
+  if(!text) return;
+  const now = new Date();
+  const time = ('0'+now.getHours()).slice(-2)+':'+('0'+now.getMinutes()).slice(-2);
+  chatMessages[activeShopChat].push({from:'merchant',text,time});
+  inp.value = '';
+  openMerchantChat(activeShopChat);
+  renderMerchantConvs();
+}
+
+// 商户端：打开特定会话
+function openMerchantChat(shopId){
+  activeShopChat = shopId;
+  const s = shopsData.find(x=>x.id===shopId);
+  if(!s) return;
+  document.getElementById('activeConvTitle').innerHTML = s.emoji+' '+s.name;
+  const msgs = document.getElementById('mChatMsgs');
+  const arr = chatMessages[shopId] || [];
+  msgs.innerHTML = arr.map(m=>{
+    let cls = m.from==='merchant' ? 'cb-right' : 'cb-left';
+    let lbl = m.from==='merchant' ? '我' : '学生';
+    return '<div class="chat-bub '+cls+'"><div>'+m.text+'</div><div class="cb-meta"><span>'+lbl+'</span><span>'+m.time+'</span></div></div>';
+  }).join('');
+  msgs.scrollTop = msgs.scrollHeight;
+}
+
+// 商户端：渲染会话列表
+function renderMerchantConvs(){
+  const el = document.getElementById('convList');
+  const currentMerchantShopId = merchantShopId || 'zhangtea'; // 当前商户只接收自己店铺的消息
+  const entries = Object.keys(chatMessages).filter(k=>k===currentMerchantShopId&&chatMessages[k].length>0).map(k=>({id:k,msgs:chatMessages[k],shop:shopsData.find(s=>s.id===k)}));
+  const total = entries.reduce((s,e)=>s+e.msgs.length,0);
+  document.getElementById('convCount').textContent = total+'条消息';
+  if(entries.length===0){
+    el.innerHTML = '<div class="record-empty">暂无学生消息 · 等待学生联系</div>';
+  } else {
+    el.innerHTML = entries.map(e=>{
+      const last = e.msgs[e.msgs.length-1];
+      const unread = e.msgs.filter(m=>m.from==='student').length;
+      return '<div class="conv-item" onclick="openMerchantChat(\''+e.id+'\')">'+
+        '<div style="width:36px;height:36px;border-radius:50%;background:'+(e.shop?e.shop.color:'#6366f1')+';display:flex;align-items:center;justify-content:center;font-size:16px;color:#fff;flex-shrink:0">'+(e.shop?e.shop.emoji:'👤')+'</div>'+
+        '<div style="flex:1;min-width:0"><div style="font-size:13px;font-weight:600">'+(e.shop?e.shop.name:'学生')+'</div><div style="font-size:11px;color:var(--gray-500);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+last.text+'</div></div>'+
+        '<div style="text-align:right;flex-shrink:0"><div style="font-size:10px;color:var(--gray-400)">'+last.time+'</div>'+(unread>0?'<div class="ci-unread">'+unread+'</div>':'')+'</div>'+
+      '</div>';
+    }).join('');
+  }
+}
+
+// ===== 学生端消息收件箱 =====
+function renderStudentChats(){
+  const el = document.getElementById('sChatList');
+  // 收集所有学生发过消息的店铺
+  const entries = Object.keys(chatMessages).filter(k=>chatMessages[k].length>0).map(k=>({id:k,msgs:chatMessages[k],shop:shopsData.find(s=>s.id===k)}));
+  if(entries.length===0){
+    el.innerHTML = '<div class="record-empty">暂无消息 · 在「附近店铺」中联系商家即可开始对话</div>';
+    return;
+  }
+  el.innerHTML = entries.map(e=>{
+    const last = e.msgs[e.msgs.length-1];
+    const lastFrom = last.from==='student'?'你':'商家';
+    return '<div class="conv-item" onclick="openChat(\''+e.id+'\',\''+(e.shop?e.shop.name:'商家')+'\',\''+(e.shop?e.shop.emoji:'💬')+'\',\''+(e.shop?e.shop.color:'#6366f1')+'\')">'+
+      '<div style="width:36px;height:36px;border-radius:50%;background:'+(e.shop?e.shop.color:'#6366f1')+';display:flex;align-items:center;justify-content:center;font-size:16px;color:#fff;flex-shrink:0">'+(e.shop?e.shop.emoji:'💬')+'</div>'+
+      '<div style="flex:1;min-width:0"><div style="font-size:13px;font-weight:600">'+(e.shop?e.shop.name:'商家')+'</div><div style="font-size:11px;color:var(--gray-500);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+lastFrom+': '+last.text+'</div></div>'+
+      '<div style="text-align:right;flex-shrink:0"><div style="font-size:10px;color:var(--gray-400)">'+last.time+'</div></div>'+
+    '</div>';
+  }).join('');
+}
+
+// 确保初始呈现
+renderAll();
+</script>
+</body>
+</html>
+"""
+
+OUTPUT.write_text(HTML, encoding="utf-8")
+print("V7 SIZE:", OUTPUT.stat().st_size, "bytes")

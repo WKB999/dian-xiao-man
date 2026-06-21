@@ -1,1 +1,8 @@
+# 店小满 — Python 依赖
+# 安装: pip install -r requirements.txt
+
+# Web 框架（核心依赖）
 flask>=2.0.0
+
+# 生产部署（可选）
+# gunicorn>=20.0.0

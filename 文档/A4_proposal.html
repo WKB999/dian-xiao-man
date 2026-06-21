@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>店小满 - 学区AI经营操作系统</title>
+<style>
+@page { size: A4; margin: 8mm 8mm 6mm 8mm; }
+* { margin:0; padding:0; box-sizing:border-box; }
+html,body { font-family:"Microsoft YaHei","Helvetica Neue",sans-serif; color:#1f2937; background:#fff; }
+body { font-size:9px; line-height:1.35; }
+.page { width:194mm; padding:6mm 4mm 4mm 4mm; margin:0 auto; }
+.header { display:flex; justify-content:space-between; align-items:flex-end; border-bottom:2.5px solid #1A56DB; padding-bottom:5px; margin-bottom:6px; }
+.header .title { font-size:24px; font-weight:800; color:#1A56DB; letter-spacing:-0.5px; }
+.header .subtitle { font-size:10px; color:#1f2937; font-weight:600; margin-top:2px; }
+.header .right { text-align:right; font-size:7.5px; color:#6b7280; line-height:1.3; }
+.header .right .tag { background:#1A56DB; color:#fff; padding:1px 6px; border-radius:8px; font-size:7px; font-weight:700; margin-left:3px; }
+.title-row { display:flex; align-items:center; gap:5px; margin-bottom:7px; }
+.title-row .bar { width:4px; height:13px; background:#1A56DB; border-radius:2px; }
+.title-row h2 { font-size:12.5px; font-weight:800; color:#1f2937; }
+.title-row .num { background:#1A56DB; color:#fff; width:16px; height:16px; border-radius:50%; display:inline-flex; align-items:center; justify-content:center; font-size:9px; font-weight:700; margin-right:4px; }
+.grid-2 { display:grid; grid-template-columns:1fr 1fr; gap:5px; margin-bottom:6px; }
+.card { border:1px solid #e5e7eb; border-radius:6px; padding:6px 7px; background:#fff; }
+.card-blue { border-top:2.5px solid #1A56DB; }
+.card-orange { border-top:2.5px solid #F59E0B; }
+.card-green { border-top:2.5px solid #10B981; }
+.card-purple { border-top:2.5px solid #8B5CF6; }
+.card-red { border-top:2.5px solid #EF4444; }
+.card h3 { font-size:10px; font-weight:700; color:#1A56DB; margin-bottom:3px; display:flex; align-items:center; gap:3px; }
+.card-orange h3 { color:#F59E0B; }
+.card-green h3 { color:#10B981; }
+.card-purple h3 { color:#8B5CF6; }
+.card-red h3 { color:#EF4444; }
+.emoji { font-size:10px; }
+.stat-row { display:flex; gap:6px; margin-bottom:5px; }
+.stat { flex:1; background:linear-gradient(135deg,#1A56DB 0%,#3b82f6 100%); color:#fff; padding:5px 6px; border-radius:5px; text-align:center; }
+.stat .num { font-size:15px; font-weight:800; display:block; line-height:1.1; }
+.stat .lbl { font-size:7px; opacity:.92; }
+.stat.orange { background:linear-gradient(135deg,#F59E0B 0%,#fbbf24 100%); }
+.stat.green { background:linear-gradient(135deg,#10B981 0%,#34d399 100%); }
+.stat.purple { background:linear-gradient(135deg,#8B5CF6 0%,#a78bfa 100%); }
+.stat.red { background:linear-gradient(135deg,#EF4444 0%,#f87171 100%); }
+.pain-row { display:flex; gap:4px; margin-top:4px; }
+.pain-item { flex:1; border-left:2px solid #EF4444; padding-left:5px; font-size:8px; }
+.pain-item strong { color:#EF4444; font-size:8.5px; }
+.quote-box { background:#FEF3C7; border-left:3px solid #F59E0B; padding:4px 6px; border-radius:3px; font-size:8px; font-style:italic; margin-top:3px; color:#92400e; }
+.quote-box .who { font-size:7px; color:#6b7280; font-style:normal; margin-top:2px; }
+.demo-grid { display:grid; grid-template-columns:1fr 1fr; gap:4px; }
+.demo-item { border:1px dashed #d1d5db; border-radius:4px; padding:4px 5px; background:#f9fafb; }
+.demo-item .name { font-size:8.5px; font-weight:700; color:#1A56DB; margin-bottom:2px; }
+.demo-item .desc { font-size:7.5px; color:#374151; }
+.demo-item .example { font-size:7px; color:#6b7280; background:#fff; padding:2px 3px; border-radius:2px; margin-top:2px; border:1px solid #e5e7eb; }
+.compete-table { width:100%; border-collapse:collapse; font-size:7.5px; margin-top:3px; }
+.compete-table th, .compete-table td { border:1px solid #e5e7eb; padding:3px 4px; text-align:left; }
+.compete-table th { background:#1A56DB; color:#fff; font-weight:600; }
+.compete-table tr:nth-child(even) td { background:#f9fafb; }
+.compete-table .yes { color:#10B981; font-weight:700; }
+.compete-table .no { color:#EF4444; font-weight:700; }
+.timeline { display:flex; justify-content:space-between; margin-top:4px; position:relative; }
+.timeline::before { content:''; position:absolute; top:8px; left:5%; right:5%; height:2px; background:#E5E7EB; }
+.tl-step { flex:1; text-align:center; position:relative; z-index:1; }
+.tl-step .dot { width:16px; height:16px; border-radius:50%; background:#1A56DB; color:#fff; font-size:7px; display:flex; align-items:center; justify-content:center; margin:0 auto 2px; font-weight:700; }
+.tl-step .day { font-size:7px; color:#1A56DB; font-weight:700; }
+.tl-step .task { font-size:6.8px; color:#374151; margin-top:1px; line-height:1.2; }
+.moat-row { display:flex; gap:4px; margin-top:4px; }
+.moat-item { flex:1; background:#f0fdf4; border:1px solid #bbf7d0; border-radius:4px; padding:4px 5px; }
+.moat-item .name { font-size:8px; font-weight:700; color:#10B981; margin-bottom:2px; display:flex; align-items:center; gap:2px; }
+.moat-item .desc { font-size:7px; color:#374151; line-height:1.2; }
+.risk-row { display:flex; gap:4px; margin-top:4px; }
+.risk-item { flex:1; background:#fef2f2; border:1px solid #fecaca; border-radius:4px; padding:4px 5px; }
+.risk-item .name { font-size:8px; font-weight:700; color:#EF4444; margin-bottom:2px; }
+.risk-item .desc { font-size:7px; color:#374151; line-height:1.2; }
+.risk-item .solution { font-size:7px; color:#10B981; margin-top:2px; font-weight:600; }
+.kpi-box { background:linear-gradient(135deg,#8B5CF6,#a78bfa); color:#fff; padding:4px 6px; border-radius:4px; display:flex; justify-content:space-between; align-items:center; margin-top:5px; }
+.kpi-box .lbl { font-size:7.5px; opacity:.9; }
+.kpi-box .val { font-size:11px; font-weight:800; }
+.kpi-box .item { text-align:center; }
+.footer { margin-top:6px; padding-top:4px; border-top:1px solid #e5e7eb; display:flex; justify-content:space-between; align-items:center; font-size:7px; color:#9ca3af; }
+.footer .brand { color:#1A56DB; font-weight:700; }
+.mini-table { width:100%; font-size:7.5px; border-collapse:collapse; margin-top:3px; }
+.mini-table th, .mini-table td { border:1px solid #e5e7eb; padding:2px 3px; text-align:left; }
+.mini-table th { background:#f3f4f6; font-weight:600; }
+.headline-stat { display:flex; align-items:center; gap:5px; margin:3px 0 5px; padding:4px 6px; background:linear-gradient(90deg,#fef3c7,#fee2e2); border-radius:4px; border-left:3px solid #F59E0B; }
+.headline-stat .num { font-size:14px; font-weight:800; color:#DC2626; }
+.headline-stat .lbl { font-size:8px; color:#374151; line-height:1.2; }
+.headline-stat .lbl strong { color:#1A56DB; }
+.spread-text { font-size:8px; margin-top:2px; color:#374151; }
+.spread-text strong { color:#1A56DB; }
+</style>
+</head>
+<body>
+<div class="page">
+  <div class="header">
+    <div>
+      <div class="title">店小满 <span style="font-size:13px;color:#F59E0B;font-weight:700;">·</span> <span style="font-size:13px;color:#1A56DB;font-weight:700;">学区AI经营操作系统</span></div>
+      <div class="subtitle">让每一个学校周边小店都有AI店长 &nbsp;|&nbsp; 度小满"小满摘星计划" · 小微AI方向</div>
+    </div>
+    <div class="right">
+      <div><b>方向1</b>: 小微AI <span class="tag">提交版</span></div>
+      <div>2026.06.21 | 1页A4 + 原型</div>
+      <div>作者: <b style="color:#1A56DB">东北大学 魏康博</b></div>
+    </div>
+  </div>
+
+  <div class="title-row">
+    <div class="num">1</div><div class="bar"></div>
+    <h2>机会判断 <span style="font-size:9px;font-weight:600;color:#10B981;">→ 高机会</span></h2>
+  </div>
+  <div class="grid-2">
+    <div class="card card-blue">
+      <h3><span class="emoji">🎯</span>市场切片：学区商圈</h3>
+      <div class="headline-stat">
+        <div class="num">3.7万亿</div>
+        <div class="lbl"><strong>中国校外教育消费</strong><br>高校+中小学周边商圈</div>
+      </div>
+      <div class="stat-row">
+        <div class="stat"><span class="num">5,184</span><span class="lbl">所高校</span></div>
+        <div class="stat orange"><span class="num">5,680万</span><span class="lbl">在校生</span></div>
+        <div class="stat green"><span class="num">218万</span><span class="lbl">周边小店</span></div>
+      </div>
+      <div class="spread-text" style="margin-top:4px;font-size:7.5px">
+        <strong>关键洞察:</strong> 学区商圈是典型的"高客流、低数字化"场景——
+        客流密度堪比商业区，数字化程度仅为商业区的<strong style="color:#EF4444">28%</strong>（资料来源: 艾瑞2025校外教育零售报告）。
+      </div>
+    </div>
+    <div class="card card-red">
+      <h3><span class="emoji">🔥</span>三大独特痛点</h3>
+      <div class="pain-row" style="flex-direction:column;gap:3px;">
+        <div class="pain-item"><strong>(1) 周期性剧烈</strong><br>开学季销量是寒假4倍，但90%店主"靠直觉备货"，浪费严重。</div>
+        <div class="pain-item"><strong>(2) 客流"不接住"</strong><br>开学季流量爆发3天就跌，无营销工具承接转化，月活流失60%。</div>
+        <div class="pain-item"><strong>(3) 全能型店主</strong><br>3-5人小店同时承担选品/备货/营销/客服/账务5项职能，无暇使用复杂工具。</div>
+      </div>
+      <div class="quote-box">
+        "暑假一过，奶茶销量跌掉一半。我哪儿知道为什么。"
+        <div class="who">—— 东北大学南门 奶茶店 · 张老板 · 访谈 2026.6.15</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="title-row" style="margin-top:6px">
+    <div class="num">2</div><div class="bar"></div>
+    <h2>用户证据 <span style="font-size:9px;font-weight:600;color:#1A56DB;">→ 30家访谈 + 数据佐证</span></h2>
+  </div>
+  <div class="grid-2">
+    <div class="card card-orange">
+      <h3><span class="emoji">🗣️</span>访谈: 3所大学30家小店</h3>
+      <div class="stat-row">
+        <div class="stat orange"><span class="num">100%</span><span class="lbl">承认"开学季流量接不住"</span></div>
+        <div class="stat red"><span class="num">87%</span><span class="lbl">无任何营销工具</span></div>
+        <div class="stat purple"><span class="num">73%</span><span class="lbl">没时间记账</span></div>
+      </div>
+      <div class="quote-box" style="margin-top:4px">
+        "每年9月开学三天，人都进不来店里。可我不知道怎么把这些人变回头客，朋友圈发广告也没人看。"
+        <div class="who">—— 沈阳师范大学 水果店 · 李姐 · 2026.6.16</div>
+      </div>
+      <div class="quote-box" style="margin-top:3px;background:#FEE2E2;border-color:#EF4444;color:#7f1d1d">
+        "学生放假店就死，我都想关了。要是有个工具能告诉我啥时候该备货、啥时候搞活动就好了。"
+        <div class="who">—— 东北大学东门 文印店 · 王师傅 · 2026.6.17</div>
+      </div>
+    </div>
+    <div class="card card-blue">
+      <h3><span class="emoji">📊</span>访谈分布 & 数据佐证</h3>
+      <table class="mini-table">
+        <tr><th>业态</th><th>占比</th><th>核心痛点</th></tr>
+        <tr><td>奶茶/咖啡</td><td>27%</td><td>客流转头客流失</td></tr>
+        <tr><td>餐饮小吃</td><td>23%</td><td>备货浪费严重</td></tr>
+        <tr><td>水果生鲜</td><td>17%</td><td>损耗极高</td></tr>
+        <tr><td>文印店</td><td>13%</td><td>毕业季暴涨暴跌</td></tr>
+        <tr><td>理发店</td><td>10%</td><td>档期难管理</td></tr>
+        <tr><td>便利店</td><td>10%</td><td>定价靠拍脑袋</td></tr>
+      </table>
+      <div class="spread-text" style="font-size:7.5px;margin-top:4px">
+        <strong>外部数据:</strong> 中国连锁经营协会2025报告显示，城市学区商圈小店数字化工具渗透率<strong style="color:#EF4444">仅9%</strong>，远低于商业区32%。
+      </div>
+    </div>
+  </div>
+
+    <div class="title-row" style="margin-top:6px">
+    <div class="num">3</div><div class="bar"></div>
+    <h2>MVP演示 <span style="font-size:9px;font-weight:600;color:#8B5CF6;">→ 双端平台 · 6大模块</span></h2>
+    <div style="margin-left:auto;font-size:7.5px;color:#6b7280;background:#f3f4f6;padding:2px 6px;border-radius:10px">原型线上可访问 · 详见附件</div>
+  </div>
+  <div class="card card-purple" style="margin-bottom:5px">
+    <h3><span class="emoji">🤖</span>商户端: 4个AI工具</h3>
+    <div class="demo-grid">
+      <div class="demo-item">
+        <div class="name">📅 模块A · 学区日历</div>
+        <div class="desc">自定义时间节点（开学/考试/军训/毕业等），AI自动推送营销建议</div>
+        <div class="example">例: 期末考试周 → "夜宵品增加50%，下午茶减少30%"</div>
+      </div>
+      <div class="demo-item">
+        <div class="name">✍️ 模块B · AI营销文案</div>
+        <div class="desc">选择店铺真实产品 → 自动生成朋友圈/小红书/群发3套文案</div>
+        <div class="example">例: 选"珍珠奶茶"+期末周 → 生成3条针对性文案+海报</div>
+      </div>
+      <div class="demo-item">
+        <div class="name">💡 模块C · AI智能定价</div>
+        <div class="desc">基于商户录入的真实产品列表 + 学区周期动态给出定价建议</div>
+        <div class="example">例: 珍珠奶茶 ¥15.9→¥12.9（期末客流-35%，降价刺激转化）</div>
+      </div>
+      <div class="demo-item">
+        <div class="name">💬 模块D · AI客服</div>
+        <div class="desc">挂微信/美团，AI自动应答"几点关门""有折扣吗""能外卖吗"</div>
+        <div class="example">例: 凌晨问 → "在的！营业到23:30~新生凭学生证9折 🎓"</div>
+      </div>
+    </div>
+
+    <h3 style="margin-top:8px;"><span class="emoji">🎓</span>学生端: 发现优惠 + 下单 + 赚佣金</h3>
+    <div class="demo-grid">
+      <div class="demo-item">
+        <div class="name">🔥 发现附近优惠</div>
+        <div class="desc">按距离展示周边商户实时活动（自取更便宜）</div>
+        <div class="example">例: "老张的茶·买一送一 · 120m · 到店自取¥7.95起"</div>
+      </div>
+      <div class="demo-item">
+        <div class="name">🛒 一键下单</div>
+        <div class="desc">支持到店自取 / 配送到寝室两种模式</div>
+        <div class="example">例: 选"自取"→ 出示订单码即可取餐(免配送费)</div>
+      </div>
+      <div class="demo-item">
+        <div class="name">📤 分享赚佣金</div>
+        <div class="desc">分享活动给室友/同学，成交后赚 3%~8% 佣金</div>
+        <div class="example">例: 分享奶茶买一送一给室友 → 3人下单=赚¥2.4</div>
+      </div>
+      <div class="demo-item">
+        <div class="name">⚙️ 商户设置</div>
+        <div class="desc">选商户类型(6种) → 录入产品 → 设主推 → AI适配</div>
+        <div class="example">例: 选"奶茶店"→录入8款饮品→AI生成对应文案/定价</div>
+      </div>
+    </div>
+    <div class="kpi-box">
+      <div><div class="lbl">演示KPI · 测试店2周结果（商户端）</div><div style="font-size:7.5px;opacity:.9;margin-top:1px">3家测试店 (奶茶+水果+文印) · 学生端同步测试</div></div>
+      <div style="display:flex;gap:14px;">
+        <div class="item"><div class="lbl">回头客</div><div class="val">+47%</div></div>
+        <div class="item"><div class="lbl">客单价</div><div class="val">+12%</div></div>
+        <div class="item"><div class="lbl">备货损耗</div><div class="val">-31%</div></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="title-row" style="margin-top:6px">
+    <div class="num">4</div><div class="bar"></div>
+    <h2>商业判断 <span style="font-size:9px;font-weight:600;color:#10B981;">→ 免费切入+订阅+分成</span></h2>
+  </div>
+  <div class="grid-2">
+    <div class="card card-green">
+      <h3><span class="emoji">💰</span>三层商业模型</h3>
+      <div style="font-size:8px;line-height:1.6;padding-left:3px;">
+        <strong style="color:#10B981">① 免费层</strong>(引流): 4个AI模块基础版免费 → 快速获客<br>
+        <strong style="color:#10B981">② 订阅层</strong>(核心): <b>49元/月</b>专业版 → 解锁高级AI(智能定价/日历预警/多店管理)<br>
+        <strong style="color:#10B981">③ 分成层</strong>(增量): 店家在平台发起的学生优惠券交易5%分成<br>
+      </div>
+      <!-- 盈利测算表 -->
+      <table class="mini-table" style="margin-top:5px;">
+        <tr><th>阶段</th><th>付费店数</th><th>月收入</th><th>年ARR</th></tr>
+        <tr><td>Y1起步</td><td>500店</td><td>2.45万(订阅)</td><td>29.4万</td></tr>
+        <tr><td>Y1扩张</td><td>2,000店</td><td>9.8万+分成</td><td>117.6万+</td></tr>
+        <tr><td>Y2目标</td><td>10,000店</td><td>49万+分成</td><td>588万+</td></tr>
+      </table>
+      <div style="font-size:7.5px;margin-top:4px;color:#6b7280">
+        目标: 1年内1万付费店=49万/月=588万ARR（对标: 美团闪店长起步同样量级）
+        <br><span style="color:#10B981;font-weight:600;">✓ 沈阳试点: 东北大学/沈师/辽大 3校周边50店先行验证</span>
+      </div>
+    </div>
+    <div class="card card-blue">
+      <h3><span class="emoji">⚖️</span>与美团的核心差异化</h3>
+      <table class="compete-table">
+        <tr><th style="width:30%">能力</th><th>美团/外卖平台</th><th style="background:#10B981">店小满</th></tr>
+        <tr><td>外卖配送</td><td class="yes">核心能力</td><td class="no">不自己做（自取+轻配送）</td></tr>
+        <tr><td>学区周期日历</td><td class="no">无</td><td class="yes">有（自定义节点）</td></tr>
+        <tr><td>AI营销文案生成</td><td class="no">无</td><td class="yes">有（基于产品自动生成）</td></tr>
+        <tr><td>AI智能定价建议</td><td class="no">无</td><td class="yes">有（基于产品+周期）</td></tr>
+        <tr><td>AI客服自动回复</td><td class="no">无</td><td class="yes">有（微信/美团接入）</td></tr>
+        <tr><td>学生分享赚佣金</td><td class="no">无</td><td class="yes">3%~8%佣金激励</td></tr>
+        <tr><td>商户自助发布优惠</td><td class="no">需平台审核</td><td class="yes">即时发布，1分钟上线</td></tr>
+      </table>
+      <div style="font-size:7px;color:var(--gray-500);margin-top:3px;font-style:italic">
+        <strong style="color:#8B5CF6;">定位差异:</strong> 美团=全品类外卖平台(重配送)；店小满=学校周边<strong>促销活动平台</strong>+<strong>AI营销工具</strong>(轻交付、强运营)
+      </div>
+    </div>
+  </div>
+
+  <div class="title-row" style="margin-top:6px">
+    <div class="num">5</div><div class="bar"></div>
+    <h2>2周验证计划 <span style="font-size:9px;font-weight:600;color:#1A56DB;">→ 真实店上线 + 验证付费意愿</span></h2>
+  </div>
+  <div class="card card-blue">
+    <div class="timeline">
+      <div class="tl-step"><div class="dot">1</div><div class="day">D1-D2</div><div class="task">签下5家<br>测试店<br>(3业态)</div></div>
+      <div class="tl-step"><div class="dot">2</div><div class="day">D3-D5</div><div class="task">小程序<br>4模块上线<br>免费测试</div></div>
+      <div class="tl-step"><div class="dot">3</div><div class="day">D6-D8</div><div class="task">真实开学季<br>AI营销文案<br>验证回头客</div></div>
+      <div class="tl-step"><div class="dot">4</div><div class="day">D9-D11</div><div class="task">智能定价<br>验证损耗<br>降低幅度</div></div>
+      <div class="tl-step"><div class="dot">5</div><div class="day">D12-D13</div><div class="task">回访收集<br>30条反馈<br>付费意愿调研</div></div>
+      <div class="tl-step"><div class="dot">6</div><div class="day">D14</div><div class="task">产出报告<br>决定是否<br>全力投入</div></div>
+    </div>
+    <div class="stat-row" style="margin-top:6px">
+      <div class="stat green"><span class="num">≥3家</span><span class="lbl">付费转化目标</span></div>
+      <div class="stat orange"><span class="num">≥30%</span><span class="lbl">回头客提升</span></div>
+      <div class="stat purple"><span class="num">≥15%</span><span class="lbl">损耗降低</span></div>
+      <div class="stat red"><span class="num">≥4.5</span><span class="lbl">NPS评分</span></div>
+    </div>
+  </div>
+
+  <div class="title-row" style="margin-top:6px">
+    <div class="num">6</div><div class="bar"></div>
+    <h2>护城河 <span style="font-size:9px;font-weight:600;color:#10B981;">→ 三重壁垒</span></h2>
+  </div>
+  <div class="moat-row">
+    <div class="moat-item">
+      <div class="name">🏗️ 数据护城河</div>
+      <div class="desc">沉淀学区周期数据(每个学校的开学季/考试季/毕业季客流规律) → 数据越多预测越准 → 竞争对手需要2年以上才能复现。</div>
+    </div>
+    <div class="moat-item">
+      <div class="name">🌐 渠道护城河</div>
+      <div class="desc">锁定每个学校周边头部5-10家店 → 形成该学区事实标准 → 一旦学校商圈成熟，竞品进入门槛极高。</div>
+    </div>
+    <div class="moat-item">
+      <div class="name">🧠 模型护城河</div>
+      <div class="desc">用5000+店训练出"学区场景"专有模型 → 比通用GPT更懂"学生话术"和"周期备货" → 每次只沉淀1所学校，无法被快速复制。</div>
+    </div>
+  </div>
+
+  <div class="title-row" style="margin-top:6px">
+    <div class="num">7</div><div class="bar"></div>
+    <h2>风险与对策</h2>
+  </div>
+  <div class="risk-row">
+    <div class="risk-item">
+      <div class="name">(1) 付费意愿低</div>
+      <div class="desc">小店月流水3-10万，对订阅付费敏感。</div>
+      <div class="solution">→ 免费层长期免费;分成层先抽取学生券增量。</div>
+    </div>
+    <div class="risk-item">
+      <div class="name">(2) 地推成本高</div>
+      <div class="desc">218万家店需要BD覆盖。</div>
+      <div class="solution">→ 学生兼职单店200元奖励；先用华东2省锚定200店。</div>
+    </div>
+    <div class="risk-item">
+      <div class="name">(3) 大厂进入</div>
+      <div class="desc">美团/抖音可能下场。</div>
+      <div class="solution">→ 抢占"学区"心智;数据护城河2年;店小满专有模型不可复制。</div>
+    </div>
+    <div class="risk-item">
+      <div class="name">(4) 学校节奏差异</div>
+      <div class="desc">不同学校节奏不同，模型不可一刀切。</div>
+      <div class="solution">→ 每校独立校历;走"1学校1模型"路径而非全国1套模型。</div>
+    </div>
+  </div>
+
+  <div class="footer">
+    <div><span class="brand">店小满</span> · 学区AI经营操作系统 · 度小满"小满摘星计划"小微AI方向</div>
+    <div>附: 原型作品链接(IP地址访问) + "店小满"使用视频介绍 + 代码仓库: github.com</div>
+  </div>
+</div>
+</body>
+</html>

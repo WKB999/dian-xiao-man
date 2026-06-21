@@ -5,9 +5,7 @@
 import sqlite3, json, os, datetime, hashlib, secrets
 from flask import Flask, request, jsonify, send_file, g
 
-BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-FRONTEND_DIR = os.path.join(BASE_DIR, 'frontend')
-app = Flask(__name__, static_folder=FRONTEND_DIR, static_url_path='')
+app = Flask(__name__, static_folder='../', static_url_path='')
 DB_PATH = os.path.join(os.path.dirname(__file__), 'store.db')
 
 def get_db():
@@ -61,6 +59,16 @@ def init_db():
         CREATE TABLE IF NOT EXISTS messages(
             id INTEGER PRIMARY KEY AUTOINCREMENT, shop_id TEXT,
             sender TEXT, text TEXT, time TEXT, created TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        );
+        CREATE TABLE IF NOT EXISTS sales_records(
+            id INTEGER PRIMARY KEY AUTOINCREMENT, shop_id TEXT,
+            date TEXT, revenue REAL, orders INTEGER DEFAULT 0, note TEXT DEFAULT '',
+            created TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        );
+        CREATE TABLE IF NOT EXISTS orders(
+            id TEXT PRIMARY KEY, shop_id TEXT, student TEXT,
+            product TEXT, price REAL, deal TEXT DEFAULT '', deal_price REAL,
+            status TEXT DEFAULT '待取餐', created TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         );
     """)
     # 添加列迁移（兼容旧库）
@@ -178,13 +186,20 @@ def login():
     if hash_pw(password) != user['password_hash']:
         return jsonify({"error":"密码错误"}), 401
     token = make_token({"id":user['id'],"role":user['role']})
-    # 查询店铺名称
+    # 查询店铺名称、地址、学校
     shop_name = ''
+    shop_addr = ''
+    shop_school = ''
     if user['shop_id']:
-        shop = db.execute("SELECT name FROM shops WHERE id=?",(user['shop_id'],)).fetchone()
-        if shop: shop_name = shop['name']
-    sessions[token] = {"id":user['id'],"username":user['username'],"role":user['role'],"shop_id":user['shop_id'],"shop_name":shop_name,"school":user['school']}
-    return jsonify({"token":token,"user":{"id":user['id'],"username":user['username'],"role":user['role'],"shop_id":user['shop_id'],"shop_name":shop_name,"school":user['school']}})
+        shop = db.execute("SELECT name,addr,school FROM shops WHERE id=?",(user['shop_id'],)).fetchone()
+        if shop:
+            shop_name = shop['name']
+            shop_addr = shop['addr'] or ''
+            shop_school = shop['school'] or ''
+    # 优先使用店铺表中的学校，其次用户表中的学校
+    school = shop_school or user['school'] or ''
+    sessions[token] = {"id":user['id'],"username":user['username'],"role":user['role'],"shop_id":user['shop_id'],"shop_name":shop_name,"shop_addr":shop_addr,"school":school}
+    return jsonify({"token":token,"user":{"id":user['id'],"username":user['username'],"role":user['role'],"shop_id":user['shop_id'],"shop_name":shop_name,"shop_addr":shop_addr,"school":school}})
 
 def get_user():
     token = request.headers.get('Authorization','').replace('Bearer ','')
@@ -203,12 +218,17 @@ def index():
 def me():
     user = get_user()
     if not user: return jsonify({"error":"未登录"}), 401
-    # 补充店铺名称
+    # 补充店铺名称、地址、学校
     shop_name = user.get('shop_name','')
-    if not shop_name and user.get('shop_id'):
-        shop = get_db().execute("SELECT name FROM shops WHERE id=?",(user['shop_id'],)).fetchone()
-        if shop: shop_name = shop['name']
-    return jsonify({**user, "shop_name":shop_name})
+    shop_addr = user.get('shop_addr','')
+    shop_school = user.get('school','')
+    if user.get('shop_id'):
+        shop = get_db().execute("SELECT name,addr,school FROM shops WHERE id=?",(user['shop_id'],)).fetchone()
+        if shop:
+            if not shop_name: shop_name = shop['name']
+            if not shop_addr: shop_addr = shop['addr'] or ''
+            if not shop_school: shop_school = shop['school'] or ''
+    return jsonify({**user, "shop_name":shop_name, "shop_addr":shop_addr, "school":shop_school})
 
 @app.route('/api/shops')
 def api_shops():
@@ -227,6 +247,20 @@ def api_shops():
             "promos":[dict(p) for p in promos]
         })
     return jsonify(shops)
+
+# 更新店铺信息（地址等）
+@app.route('/api/shops/<shop_id>', methods=['PUT'])
+def update_shop(shop_id):
+    user = get_user()
+    if not user or user.get('shop_id')!=shop_id:
+        return jsonify({"error":"无权操作"}), 403
+    data = request.get_json()
+    db = get_db()
+    for field in ['name','addr','school','type','description','tags']:
+        if field in data:
+            db.execute(f"UPDATE shops SET {field}=? WHERE id=?",(data[field],shop_id))
+    db.commit()
+    return jsonify({"ok":True})
 
 # ======== 产品 CRUD ========
 @app.route('/api/products/<shop_id>')
@@ -284,7 +318,28 @@ def api_stats():
     msg_count = db.execute("SELECT COUNT(*) FROM messages").fetchone()[0]
     return jsonify({"shops":shop_count,"products":prod_count,"promotions":promo_count,"messages":msg_count})
 
+# ======== 逆地理编码 ========
+@app.route('/api/geocode')
+def api_geocode():
+    lat = request.args.get('lat','')
+    lng = request.args.get('lng','')
+    if not lat or not lng:
+        return jsonify({"error":"需要 lat 和 lng 参数"}), 400
+    import urllib.request
+    url = f'https://nominatim.openstreetmap.org/reverse?format=json&lat={lat}&lon={lng}&zoom=18&accept-language=zh'
+    req = urllib.request.Request(url, headers={'User-Agent': 'DianXiaoMan/1.0 (campus promotion platform)'})
+    try:
+        with urllib.request.urlopen(req, timeout=8) as resp:
+            data = json.loads(resp.read().decode('utf-8'))
+            addr = data.get('display_name','') or f'{lat}, {lng}'
+            if len(addr) > 80:
+                addr = '，'.join(addr.split(',')[:3])
+            return jsonify({"address":addr,"lat":lat,"lng":lng})
+    except Exception as e:
+        return jsonify({"address":f'{lat}, {lng}',"lat":lat,"lng":lng})
+
 # ======== 促销 ========
+@app.route('/api/promotions')
 def api_promotions():
     return jsonify([dict(r) for r in get_db().execute("SELECT * FROM promotions ORDER BY id DESC")])
 
@@ -299,6 +354,62 @@ def add_promotion():
     db.execute("INSERT INTO promotions(shop_id,shop_name,name,price,deal_price,deal,deal_time,title,created) VALUES(?,?,?,?,?,?,?,?,?)",
                (data['shop_id'],data['shop_name'],data['name'],data['price'],
                 data['deal_price'],data['deal'],data.get('deal_time',''),data['title'],today))
+    db.commit()
+    return jsonify({"ok":True}), 201
+
+@app.route('/api/promotions/<int:pid>', methods=['DELETE'])
+def delete_promotion(pid):
+    user = get_user()
+    if not user: return jsonify({"error":"未登录"}), 401
+    db = get_db()
+    p = db.execute("SELECT shop_id FROM promotions WHERE id=?",(pid,)).fetchone()
+    if not p: return jsonify({"error":"不存在"}), 404
+    if user.get('shop_id')!=p['shop_id']:
+        return jsonify({"error":"无权操作"}), 403
+    db.execute("DELETE FROM promotions WHERE id=?",(pid,))
+    db.commit()
+    return jsonify({"ok":True})
+
+# ======== 销售记录 ========
+@app.route('/api/sales-records/<shop_id>')
+def api_sales_records(shop_id):
+    rows = get_db().execute("SELECT * FROM sales_records WHERE shop_id=? ORDER BY date DESC",(shop_id,)).fetchall()
+    return jsonify([dict(r) for r in rows])
+
+@app.route('/api/sales-records/<shop_id>', methods=['POST'])
+def add_sales_record(shop_id):
+    user = get_user()
+    if not user or user.get('shop_id')!=shop_id:
+        return jsonify({"error":"无权操作"}), 403
+    data = request.get_json()
+    db = get_db()
+    db.execute("INSERT INTO sales_records(shop_id,date,revenue,orders,note) VALUES(?,?,?,?,?)",
+               (shop_id, data['date'], data['revenue'], data.get('orders',0), data.get('note','')))
+    db.commit()
+    return jsonify({"ok":True,"id":db.execute("SELECT last_insert_rowid()").fetchone()[0]}), 201
+
+@app.route('/api/sales-records/<shop_id>/<int:rid>', methods=['DELETE'])
+def delete_sales_record(shop_id, rid):
+    user = get_user()
+    if not user or user.get('shop_id')!=shop_id:
+        return jsonify({"error":"无权操作"}), 403
+    get_db().execute("DELETE FROM sales_records WHERE id=? AND shop_id=?",(rid,shop_id))
+    get_db().commit()
+    return jsonify({"ok":True})
+
+# ======== 学生订单 ========
+@app.route('/api/orders/<shop_id>')
+def api_orders(shop_id):
+    rows = get_db().execute("SELECT * FROM orders WHERE shop_id=? ORDER BY created DESC",(shop_id,)).fetchall()
+    return jsonify([dict(r) for r in rows])
+
+@app.route('/api/orders/<shop_id>', methods=['POST'])
+def place_order_api(shop_id):
+    data = request.get_json()
+    db = get_db()
+    db.execute("INSERT INTO orders(id,shop_id,student,product,price,deal,deal_price,status) VALUES(?,?,?,?,?,?,?,?)",
+               (data['id'], shop_id, data.get('student',''), data['product'], data['price'],
+                data.get('deal',''), data.get('deal_price',data['price']), data.get('status','待取餐')))
     db.commit()
     return jsonify({"ok":True}), 201
 

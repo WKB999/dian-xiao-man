@@ -560,25 +560,26 @@ body{
     <div class="grid-2" style="margin-bottom:16px">
       <div class="form-group"><label class="form-label">🏪 店铺名称</label><input type="text" class="form-input" id="shopName" value="老张的茶"></div>
       <div class="form-group"><label class="form-label">📍 位置</label>
-        <select class="form-select" id="shopLoc" onchange="toggleLocCustom()">
-          <option>东北大学 · 南门</option><option>东北大学 · 东门</option><option>东北大学 · 西门</option>
-          <option>辽宁大学 · 崇山校区</option><option>沈阳师范大学 · 正门</option>
-          <option>沈阳工业大学 · 中央校区</option><option>沈阳航空航天大学 · 南门</option>
-          <option>沈阳理工大学 · 东门</option><option>沈阳建筑大学 · 正门</option>
-          <option>沈阳农业大学 · 南门</option><option>沈阳药科大学 · 校本部</option>
-          <option>大连理工大学 · 凌水校区</option><option>大连海事大学 · 正门</option>
-          <option>吉林大学 · 前卫校区</option><option>哈尔滨工业大学 · 一校区</option>
-          <option>北京大学 · 燕园</option><option>清华大学 · 东门</option>
-          <option>复旦大学 · 邯郸校区</option><option>上海交通大学 · 闵行校区</option>
-          <option>浙江大学 · 紫金港校区</option><option>南京大学 · 仙林校区</option>
-          <option>武汉大学 · 珞珈山</option><option>中山大学 · 南校区</option>
-          <option>四川大学 · 望江校区</option><option>西安交通大学 · 兴庆校区</option>
-          <option value="custom">✏️ 自定义位置...</option>
+        <select class="form-select" id="shopLoc" onchange="onLocSelect()">
+          <option value="东北大学 · 南门">东北大学 · 南门</option><option value="东北大学 · 东门">东北大学 · 东门</option><option value="东北大学 · 西门">东北大学 · 西门</option>
+          <option value="辽宁大学 · 崇山校区">辽宁大学 · 崇山校区</option><option value="沈阳师范大学 · 正门">沈阳师范大学 · 正门</option>
+          <option value="沈阳工业大学 · 中央校区">沈阳工业大学 · 中央校区</option><option value="沈阳航空航天大学 · 南门">沈阳航空航天大学 · 南门</option>
+          <option value="沈阳理工大学 · 东门">沈阳理工大学 · 东门</option><option value="沈阳建筑大学 · 正门">沈阳建筑大学 · 正门</option>
+          <option value="沈阳农业大学 · 南门">沈阳农业大学 · 南门</option><option value="沈阳药科大学 · 校本部">沈阳药科大学 · 校本部</option>
+          <option value="大连理工大学 · 凌水校区">大连理工大学 · 凌水校区</option><option value="大连海事大学 · 正门">大连海事大学 · 正门</option>
+          <option value="吉林大学 · 前卫校区">吉林大学 · 前卫校区</option><option value="哈尔滨工业大学 · 一校区">哈尔滨工业大学 · 一校区</option>
+          <option value="北京大学 · 燕园">北京大学 · 燕园</option><option value="清华大学 · 东门">清华大学 · 东门</option>
+          <option value="复旦大学 · 邯郸校区">复旦大学 · 邯郸校区</option><option value="上海交通大学 · 闵行校区">上海交通大学 · 闵行校区</option>
+          <option value="浙江大学 · 紫金港校区">浙江大学 · 紫金港校区</option><option value="南京大学 · 仙林校区">南京大学 · 仙林校区</option>
+          <option value="武汉大学 · 珞珈山">武汉大学 · 珞珈山</option><option value="中山大学 · 南校区">中山大学 · 南校区</option>
+          <option value="四川大学 · 望江校区">四川大学 · 望江校区</option><option value="西安交通大学 · 兴庆校区">西安交通大学 · 兴庆校区</option>
+          <option value="custom">✏️ 手动输入地址...</option>
         </select>
-        <input type="text" class="form-input" id="shopLocCustom" placeholder="输入学校+位置，如：中国科学技术大学·东区" style="display:none;margin-top:8px">
-        <div style="display:flex;align-items:center;gap:8px;margin-top:10px">
-          <button class="btn btn-ghost btn-sm" onclick="getCurrentLocation()" id="locBtn" style="display:flex;align-items:center;gap:4px">📍 使用当前位置</button>
-          <span style="font-size:11px;color:var(--gray-400)" id="locHint">授权后自动填充地址</span>
+        <input type="text" class="form-input" id="shopLocCustom" placeholder="输入完整地址，如：东北大学南门东侧50米·老张的茶" style="margin-top:8px">
+        <div style="display:flex;align-items:center;gap:8px;margin-top:8px">
+          <button class="btn btn-ghost btn-sm" onclick="getCurrentLocation();return false" id="locBtn" style="font-size:12px">📍 自动定位</button>
+          <button class="btn btn-ghost btn-sm" onclick="openMapHelper();return false" style="font-size:12px">🗺️ 地图选址</button>
+          <span style="font-size:11px;color:var(--gray-400)" id="locHint">先试试自动定位，不准的话用地图手动选址后粘贴</span>
         </div>
       </div>
     </div>
@@ -596,7 +597,7 @@ body{
     </div>
     <div class="form-label">🖼️ 产品展示（点击图片从本地上传）</div>
     <div class="product-grid" id="productGallery"></div>
-    <button class="btn btn-green" style="width:100%;margin-top:20px;padding:14px;font-size:15px;" onclick="syncMerchantToShop();showT('✅ 已保存！学生端同步更新')">💾 保存店铺信息</button>
+    <button class="btn btn-green" style="width:100%;margin-top:20px;padding:14px;font-size:15px;" onclick="saveShopInfo()">💾 保存店铺信息</button>
   </div>
 </div>
 
@@ -1208,6 +1209,46 @@ async function loadPromosFromAPI(){
   }catch(e){}
 }
 
+async function loadSalesRecords(){
+  if(!merchantShopId) return;
+  try{
+    const res = await fetch(apiBase+'/api/sales-records/'+merchantShopId);
+    const data = await res.json();
+    if(Array.isArray(data)){
+      salesRecords.length = 0;
+      data.forEach(r=>{
+        salesRecords.push({id:r.id, date:r.date, revenue:r.revenue, orders:r.orders||0, note:r.note||'—'});
+      });
+      renderRecords();
+      updateReportStats();
+      updateHeroStats();
+    }
+  }catch(e){}
+}
+
+async function loadStudentOrders(){
+  try{
+    const shops = await fetch(apiBase+'/api/shops').then(r=>r.json());
+    if(!Array.isArray(shops)) return;
+    studentOrders.length = 0;
+    for(const shop of shops){
+      const res = await fetch(apiBase+'/api/orders/'+shop.id);
+      const data = await res.json();
+      if(Array.isArray(data)){
+        data.forEach(o=>{
+          studentOrders.push({
+            id: o.id, shopName: shop.name,
+            product: o.product, price: o.deal_price||o.price,
+            originalPrice: o.price, deal: o.deal||'正常价', 
+            time: o.created||'', status: o.status||'待取餐'
+          });
+        });
+      }
+    }
+    renderOrders();
+  }catch(e){}
+}
+
 // 从后端获取当前登录用户信息（用于恢复会话）
 async function loadMeFromAPI(){
   try{
@@ -1275,7 +1316,8 @@ function pickRegRole(role){
       shopId: data.user.shop_id || '',
       shopName: data.user.shop_name || '',
       school: data.user.school || curSchool,
-      displayName: dName
+      displayName: dName,
+      shopAddr: data.user.shop_addr || ''
     };
     setSession(role, ses);
     loggedIn = true;
@@ -1295,7 +1337,7 @@ function pickRegRole(role){
       curType = s&&s.type&&typeProducts[s.type] ? s.type : 'tea';
     }
     if(role==='student' && username.startsWith('student')) dName='东大小明';
-    const ses = {token:'',userId:username,userRole:role,shopId:sid,shopName:dName,school,displayName:dName};
+    const ses = {token:'',userId:username,userRole:role,shopId:sid,shopName:dName,school,displayName:dName,shopAddr:''};
     setSession(role, ses);
     loggedIn = true;
     finishLogin(role);
@@ -1359,6 +1401,26 @@ function finishLogin(role){
     // 店铺名称从后端返回的真实 shop_name 设置
     const realShopName = ses.shopName || displayName;
     document.getElementById('shopName').value = realShopName;
+    // 从后端加载店铺真实地址
+    var shopAddr = ses.shopAddr || '';
+    // 尝试匹配预设位置选项
+    var locSel = document.getElementById('shopLoc');
+    var matched = false;
+    if(shopAddr){
+      for(var i=0; i<locSel.options.length; i++){
+        if(locSel.options[i].value === shopAddr || locSel.options[i].text === shopAddr || (locSel.options[i].value && shopAddr.indexOf(locSel.options[i].value)>=0)){
+          locSel.value = locSel.options[i].value;
+          matched = true;
+          break;
+        }
+      }
+    }
+    if(!matched){ locSel.value = 'custom'; }
+    document.getElementById('shopLocCustom').value = shopAddr || ses.shopName+' · 附近';
+    // 重置GPS按钮和提示（每个店铺独立状态）
+    document.getElementById('locBtn').innerHTML = '📍 自动定位';
+    document.getElementById('locBtn').disabled = false;
+    document.getElementById('locHint').textContent = '先试试自动定位，不准的话用地图手动选址后粘贴';
     syncMerchantToShop();
     navTab(getTab('m-home'));
   } else {
@@ -1372,7 +1434,7 @@ function finishLogin(role){
   renderDeals();
   renderShops();
   if(r==='merchant') renderMerchantConvs();
-  else renderStudentChats();
+  else { renderStudentChats(); renderOrders(); }
   
   // 从后端同步最新店铺数据
   loadShopsFromAPI().then(()=>{
@@ -1385,6 +1447,12 @@ function finishLogin(role){
       renderAll(); syncMerchantToShop(); renderDeals();
     });
     loadPromosFromAPI().then(()=>renderDeals());
+    loadSalesRecords();
+  }
+  
+  // 学生端加载历史订单
+  if(r==='student'){
+    loadStudentOrders();
   }
   
   // 更新学生端"我的"页面
@@ -1490,8 +1558,9 @@ function navTab(el){
   if(p==='m-home')updateHeroStats();
   if(p==='m-chat')renderMerchantConvs();
   if(p==='m-report')renderRecords();
-  if(p==='s-deals')renderDeals();
-  if(p==='s-shops')renderShops();
+  if(p==='s-deals'){ loadShopsFromAPI().then(()=>{loadPromosFromAPI().then(()=>renderDeals());}); }
+  if(p==='s-shops'){ loadShopsFromAPI().then(()=>renderShops()); }
+  if(p==='s-orders')renderOrders();
   if(p==='s-chat')renderStudentChats();
   window.scrollTo({top:0,behavior:'smooth'});
 }
@@ -1584,13 +1653,24 @@ function renderShopTags(){
 }
 function delProd(i){
   const prod = products[i];
-  if(prod.id && merchantShopId){
-    fetch(apiBase+'/api/products/'+merchantShopId+'/'+prod.id, {method:'DELETE'}).catch(()=>{});
+  if(prod.id && merchantShopId && merchantSession && merchantSession.token){
+    fetch(apiBase+'/api/products/'+merchantShopId+'/'+prod.id, {
+      method:'DELETE',
+      headers:{'Authorization':'Bearer '+merchantSession.token}
+    }).catch(()=>{});
   }
   products.splice(i,1);syncMerchantToShop();renderAll();showT('已删除')
 }
 function quickAdd(name){
-  products.push({id:Date.now(),name,price:0,basePrice:0,img:'',sales:0,retain:0,inv:100});
+  const newProd = {id:Date.now(),name,price:0,basePrice:0,img:'',sales:0,retain:0,inv:100};
+  products.push(newProd);
+  if(merchantShopId && merchantSession && merchantSession.token){
+    fetch(apiBase+'/api/products/'+merchantShopId, {
+      method:'POST',
+      headers:{'Content-Type':'application/json','Authorization':'Bearer '+merchantSession.token},
+      body: JSON.stringify({name:name, price:0, base_price:0, tag:'', sales:0, retain:0, inv:100})
+    }).then(r=>r.json()).then(d=>{if(d.id) newProd.id = d.id;}).catch(()=>{});
+  }
   syncMerchantToShop();renderAll();
   showT('✅ 已添加: '+name);
 }
@@ -1600,9 +1680,10 @@ function addProduct(){
   if(!n)return showT('请输入名称');
   const newProd = {id:Date.now(),name:n,price:p,basePrice:p,img:'',sales:0,retain:0,inv:100};
   products.push(newProd);
-  if(merchantShopId){
+  if(merchantShopId && merchantSession && merchantSession.token){
     fetch(apiBase+'/api/products/'+merchantShopId, {
-      method:'POST', headers:{'Content-Type':'application/json'},
+      method:'POST',
+      headers:{'Content-Type':'application/json','Authorization':'Bearer '+merchantSession.token},
       body: JSON.stringify({name:n, price:p, base_price:p, tag:'', sales:0, retain:0, inv:100})
     }).then(r=>r.json()).then(d=>{if(d.id) newProd.id = d.id;}).catch(()=>{});
   }
@@ -1625,9 +1706,10 @@ function savePrice(){
   products[editPid].price=v;
   // 同步到后端
   const prod = products[editPid];
-  if(prod.id && merchantShopId){
+  if(prod.id && merchantShopId && merchantSession && merchantSession.token){
     fetch(apiBase+'/api/products/'+merchantShopId+'/'+prod.id, {
-      method:'PUT', headers:{'Content-Type':'application/json'},
+      method:'PUT',
+      headers:{'Content-Type':'application/json','Authorization':'Bearer '+merchantSession.token},
       body: JSON.stringify({price:v})
     }).catch(()=>{});
   }
@@ -1640,65 +1722,80 @@ function renderMarketTags(){
 }
 function toggleCustom(){document.getElementById('customBox').style.display=document.getElementById('mkTopic').value==='custom'?'block':'none'}
 function toggleDealCustom(){document.getElementById('dealCustomBox').style.display=document.getElementById('mkDeal').value==='custom'?'block':'none'}
-function toggleLocCustom(){
-  const v=document.getElementById('shopLoc').value;
-  document.getElementById('shopLocCustom').style.display=v==='custom'?'block':'none';
+function onLocSelect(){
+  const v = document.getElementById('shopLoc').value;
+  if(v !== 'custom'){
+    document.getElementById('shopLocCustom').value = v;
+  } else {
+    document.getElementById('shopLocCustom').value = '';
+  }
 }
-
-// ===== V7 百度地图定位 =====
+// ===== GPS 自动定位（保留 locatingShopId 防串扰） =====
 function getCurrentLocation(){
   const btn = document.getElementById('locBtn');
   const hint = document.getElementById('locHint');
   btn.innerHTML = '⏳ 定位中...';
   btn.disabled = true;
-  hint.textContent = '正在获取位置...';
+  hint.textContent = '正在获取位置，浏览器将弹出授权…';
   
   if(!navigator.geolocation){
-    hint.textContent = '浏览器不支持定位';
-    useSchoolFallback();
+    hint.textContent = '⚠️ 浏览器不支持GPS，请使用地图手动选址';
+    btn.innerHTML = '📍 自动定位';
+    btn.disabled = false;
     return;
   }
   
+  const locatingShopId = merchantShopId;
+  
   navigator.geolocation.getCurrentPosition(
     function(pos){
+      if(merchantShopId !== locatingShopId) return;
       const lat = pos.coords.latitude.toFixed(6);
       const lng = pos.coords.longitude.toFixed(6);
-      hint.textContent = '获取到坐标: '+lat+', '+lng+' · 正在匹配最近学校...';
+      hint.textContent = '已获取坐标，解析地址中...';
       
-      setTimeout(()=>{
-        let nearSchool = '东北大学 · 南门';
-        if(lng > 124) nearSchool = '吉林大学 · 前卫校区';
-        else if(lat < 41.5) nearSchool = '大连理工大学 · 凌水校区';
-        else if(lat > 42) nearSchool = '哈尔滨工业大学 · 一校区';
-        
-        document.getElementById('shopLoc').value = 'custom';
-        toggleLocCustom();
-        document.getElementById('shopLocCustom').value = nearSchool;
-        hint.innerHTML = '✅ 已定位到 <b>'+nearSchool+'</b>（可手动修改）';
-        btn.innerHTML = '📍 重新定位';
-        btn.disabled = false;
-        showT('📍 已定位: '+nearSchool);
-      }, 800);
+      fetch(apiBase+'/api/geocode?lat='+lat+'&lng='+lng)
+        .then(r=>r.json())
+        .then(d=>{
+          if(merchantShopId !== locatingShopId) return;
+          let addr = d.address;
+          document.getElementById('shopLoc').value = 'custom';
+          document.getElementById('shopLocCustom').value = addr;
+          hint.innerHTML = '✅ 定位结果: <b>'+addr+'</b>  <span style="color:var(--gray-400);font-weight:normal">（不准？用右边地图按钮）</span>';
+          btn.innerHTML = '📍 重新定位';
+          btn.disabled = false;
+          showT('📍 已定位');
+          if(merchantShopId && merchantSession && merchantSession.token){
+            fetch(apiBase+'/api/shops/'+merchantShopId, {
+              method:'PUT', headers:{'Content-Type':'application/json','Authorization':'Bearer '+merchantSession.token},
+              body: JSON.stringify({addr:addr,name:document.getElementById('shopName').value.trim()||undefined})
+            }).then(()=>showT('✅ 位置已保存到服务器')).catch(()=>{});
+          }
+        })
+        .catch(()=>{
+          if(merchantShopId !== locatingShopId) return;
+          document.getElementById('shopLoc').value = 'custom';
+          document.getElementById('shopLocCustom').value = lat+', '+lng;
+          hint.innerHTML = '✅ 坐标: '+lat+', '+lng+'  <span style="color:var(--gray-400)">（解析失败，可手动修改后用地图核验）</span>';
+          btn.innerHTML = '📍 重新定位';
+          btn.disabled = false;
+        });
     },
     function(err){
-      // geolocation 失败常见原因：HTTP站点、用户拒绝、超时
-      useSchoolFallback();
+      if(merchantShopId !== locatingShopId) return;
+      hint.innerHTML = '⚠️ 定位失败（需HTTPS或权限），请用 <b>🗺️ 地图选址</b>';
+      btn.innerHTML = '📍 重试定位';
+      btn.disabled = false;
     },
-    {enableHighAccuracy:true, timeout:8000}
+    {enableHighAccuracy:true, timeout:10000}
   );
-  
-  // 定位失败回退：使用当前选中的学校
-  function useSchoolFallback(){
-    btn.innerHTML = '📍 使用当前位置';
-    btn.disabled = false;
-    // 自动用 curSchool 填入商家位置
-    document.getElementById('shopLoc').value = 'custom';
-    toggleLocCustom();
-    document.getElementById('shopLocCustom').value = curSchool + ' · 周边';
-    hint.innerHTML = '⚠️ 定位不可用（需HTTPS），已自动填入当前学校 <b>'+curSchool+'</b>，下方可修改';
-    showT('📍 已使用当前学校: '+curSchool);
-  }
 }
+// 打开百度地图帮助选址
+function openMapHelper(){
+  const search = encodeURIComponent(document.getElementById('shopLocCustom').value || curSchool);
+  window.open('https://map.baidu.com/search/'+search, '_blank');
+}
+
 function genCopy(){
   showT('✨ 生成中...');
   setTimeout(()=>{
@@ -1759,7 +1856,6 @@ function syncToSalesInfo(){
     if(!promoProducts.find(pp=>pp.name===pn)){
       const prod = products.find(p=>p.name===pn);
       let dealPrice = prod ? prod.price : 0;
-      // 根据优惠方式计算促销价
       const d = lastGenCopy.deal;
       if(/半价/.test(d)) dealPrice = dealPrice / 2;
       else if(/8折/.test(d)) dealPrice = dealPrice * 0.8;
@@ -1768,7 +1864,7 @@ function syncToSalesInfo(){
       else if(/特价/.test(d)){ const m = d.match(/¥(\d+)/); if(m) dealPrice = parseFloat(m[1]); }
       else dealPrice = dealPrice * 0.7;
       
-      promoProducts.push({
+      const newPromo = {
         name: pn,
         price: prod ? prod.price : 0,
         dealPrice: Math.round(dealPrice*100)/100,
@@ -1777,7 +1873,25 @@ function syncToSalesInfo(){
         title: lastGenCopy.title,
         date: dateStr,
         shopName: shopName
-      });
+      };
+      promoProducts.push(newPromo);
+      // 保存到后端
+      if(merchantShopId && merchantSession && merchantSession.token){
+        fetch(apiBase+'/api/promotions', {
+          method:'POST',
+          headers:{'Content-Type':'application/json','Authorization':'Bearer '+merchantSession.token},
+          body: JSON.stringify({
+            shop_id: merchantShopId,
+            shop_name: shopName,
+            name: pn,
+            price: newPromo.price,
+            deal_price: newPromo.dealPrice,
+            deal: newPromo.deal,
+            deal_time: newPromo.time,
+            title: newPromo.title
+          })
+        }).catch(()=>{});
+      }
     }
   });
   lastGenCopy = null;
@@ -1830,9 +1944,66 @@ function renderSalesInfo(){
 }
 
 // V7 新品：删除推广产品
-function delPromo(i){promoProducts.splice(i,1);renderSalesInfo();showT('已移除')}
+function delPromo(i){
+  const pp = promoProducts[i];
+  if(pp.id && merchantSession && merchantSession.token){
+    fetch(apiBase+'/api/promotions/'+pp.id, {
+      method:'DELETE',
+      headers:{'Authorization':'Bearer '+merchantSession.token}
+    }).catch(()=>{});
+  }
+  promoProducts.splice(i,1);renderSalesInfo();showT('已移除')
+}
 
 // ===== V7 数据同步：商户产品→shopsData =====
+// ===== 保存店铺信息（同步到后端 + 学生端刷新） =====
+async function saveShopInfo(){
+  if(!merchantShopId) return showT('请先登录');
+  const name = document.getElementById('shopName').value.trim();
+  const addr = document.getElementById('shopLocCustom').value.trim();
+  const locVal = document.getElementById('shopLoc').value;
+  const school = curSchool;
+  if(!name) return showT('请输入店铺名称');
+  
+  // 保存到后端
+  try {
+    const resp = await fetch(apiBase+'/api/shops/'+merchantShopId, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer '+merchantSession.token
+      },
+      body: JSON.stringify({
+        name: name,
+        addr: addr || (locVal !== 'custom' ? locVal : name),
+        school: school
+      })
+    });
+    if(!resp.ok) throw new Error('保存失败');
+    
+    // 本地同步 products 到 shopsData
+    syncMerchantToShop();
+    
+    // 更新本地 shopsData 中的店铺信息
+    const shop = shopsData.find(s=>s.id===merchantShopId);
+    if(shop){
+      shop.name = name;
+      shop.addr = addr || (locVal !== 'custom' ? locVal : name);
+      shop.school = school;
+    }
+    
+    // 从后端刷新最新数据（确保学生端看到最新信息）
+    await loadShopsFromAPI();
+    renderDeals();
+    renderShops();
+    renderAll();
+    
+    showT('✅ 已保存！学生端已同步更新');
+  } catch(e){
+    showT('❌ 保存失败，请重试');
+  }
+}
+
 function syncMerchantToShop(){
   if(!merchantShopId) return;
   const shop = shopsData.find(s=>s.id===merchantShopId);
@@ -2003,7 +2174,16 @@ function addSalesRecord(){
   const note = document.getElementById('recNote').value.trim();
   if(!d)return showT('请选择日期');
   if(isNaN(rev)||rev<0)return showT('请输入有效营业额');
-  salesRecords.push({date:d, revenue:rev, orders:ord, note:note||'—'});
+  const newRec = {date:d, revenue:rev, orders:ord, note:note||'—'};
+  salesRecords.push(newRec);
+  // 保存到后端
+  if(merchantShopId && merchantSession && merchantSession.token){
+    fetch(apiBase+'/api/sales-records/'+merchantShopId, {
+      method:'POST',
+      headers:{'Content-Type':'application/json','Authorization':'Bearer '+merchantSession.token},
+      body: JSON.stringify({date:d, revenue:rev, orders:ord, note:note||''})
+    }).then(r=>r.json()).then(j=>{if(j.id) newRec.id = j.id;}).catch(()=>{});
+  }
   document.getElementById('recRevenue').value='';
   document.getElementById('recOrders').value='';
   document.getElementById('recNote').value='';
@@ -2013,7 +2193,16 @@ function addSalesRecord(){
   showT('✅ 已录入 ¥'+rev.toFixed(2));
 }
 
-function delSalesRec(i){salesRecords.splice(i,1);renderRecords();updateReportStats();updateHeroStats();showT('已删除')}
+function delSalesRec(i){
+  const rec = salesRecords[i];
+  if(rec.id && merchantShopId && merchantSession && merchantSession.token){
+    fetch(apiBase+'/api/sales-records/'+merchantShopId+'/'+rec.id, {
+      method:'DELETE',
+      headers:{'Authorization':'Bearer '+merchantSession.token}
+    }).catch(()=>{});
+  }
+  salesRecords.splice(i,1);renderRecords();updateReportStats();updateHeroStats();showT('已删除')
+}
 
 function renderRecords(){
   const tbody = document.getElementById('recordBody');
@@ -2054,6 +2243,66 @@ function updateHeroStats(){
 
 // ===== 学生端 =====
 function order(id){showT('🛒 打开下单页面...')}
+
+// 学生订单系统
+let studentOrders = [];
+function placeOrder(shopName, name, price, deal, dealPrice){
+  const now = new Date();
+  const orderId = 'DXM'+now.getTime().toString(36).toUpperCase();
+  const newOrder = {
+    id: orderId,
+    shopName: shopName,
+    product: name,
+    price: dealPrice || price,
+    originalPrice: price,
+    deal: deal || '正常价',
+    time: now.toLocaleString('zh-CN', {month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'}),
+    status: '待取餐'
+  };
+  studentOrders.unshift(newOrder);
+  renderOrders();
+  showT('✅ 下单成功！订单号: '+orderId);
+  // 保存到后端
+  const shop = shopsData.find(s=>s.name===shopName);
+  if(shop){
+    fetch(apiBase+'/api/orders/'+shop.id, {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({
+        id: orderId,
+        student: studentSession?studentSession.displayName:'学生',
+        product: name,
+        price: dealPrice || price,
+        deal: deal,
+        deal_price: dealPrice || price,
+        status: '待取餐'
+      })
+    }).catch(()=>{});
+  }
+}
+
+function renderOrders(){
+  var el = document.querySelector('#s-orders .card');
+  if(!el) return;
+  if(studentOrders.length === 0){
+    el.innerHTML = '<div class="empty-s"><div class="ei">🛒</div><div class="et">暂无订单</div></div>';
+    return;
+  }
+  el.innerHTML = studentOrders.map(function(o){
+    return '<div style="background:#fff;border:1px solid var(--gray-200);border-radius:14px;padding:14px 16px;margin-bottom:10px">'+
+      '<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px">'+
+        '<div><div style="font-weight:700;font-size:15px">'+o.product+'</div>'+
+        '<div style="font-size:11px;color:var(--gray-500);margin-top:2px">'+o.shopName+' · '+o.time+'</div></div>'+
+        '<span style="font-size:10px;background:'+(o.status==='待取餐'?'#dbeafe':'#d1fae5')+';color:'+(o.status==='待取餐'?'#1e40af':'#065f46')+';padding:3px 10px;border-radius:20px;font-weight:600">'+o.status+'</span>'+
+      '</div>'+
+      '<div style="display:flex;justify-content:space-between;align-items:center;border-top:1px solid var(--gray-100);padding-top:8px">'+
+        '<span style="font-size:11px;color:var(--gray-500)">订单号: '+o.id+'</span>'+
+        '<span style="font-weight:800;font-size:16px;color:var(--orange)">¥'+o.price.toFixed(2)+'</span>'+
+      '</div>'+
+      (o.deal&&o.deal!=='正常价'?'<div style="margin-top:6px;font-size:11px;color:var(--green);background:#ecfdf5;padding:4px 10px;border-radius:6px;display:inline-block">🎁 '+o.deal+' · 省 ¥'+(o.originalPrice-o.price).toFixed(2)+'</div>':'')+
+    '</div>';
+  }).join('');
+}
 function shareIt(){showT('📤 已生成分享链接！对方下单你赚佣金')}
 
 // ===== V7 学生端：今日促销渲染 =====
@@ -2230,7 +2479,7 @@ function viewShop(shopId){
             '<div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px">'+
               '<span style="font-size:12px;color:var(--gray-400);text-decoration:line-through">原价 ¥'+(pp.price||0).toFixed(1)+'</span>'+
               '<span class="si-price" style="font-size:22px">¥'+(pp.dealPrice||pp.price||0).toFixed(2)+'</span>'+
-              '<button class="btn btn-orange" onclick="showT(\'🛒 已加购 '+pp.name+'\')" style="padding:8px 20px;font-size:14px">🛒 下单</button>'+
+              '<button class="btn btn-orange" onclick="placeOrder(\''+pp.shopName+'\',\''+pp.name+'\','+(pp.price||0)+',\''+(pp.deal||'')+'\','+(pp.dealPrice||pp.price||0)+')" style="padding:8px 20px;font-size:14px">🛒 下单</button>'+
             '</div>'+
           '</div>'
         ).join('')
@@ -2241,12 +2490,13 @@ function viewShop(shopId){
     '<div class="sales-section">'+
       '<div class="ss-head"><span class="ss-icon">📋</span><span class="ss-title">全部产品报价</span></div>'+
       '<table class="price-table">'+
-        '<thead><tr><th>产品</th><th>售价</th><th>标签</th></tr></thead>'+
+        '<thead><tr><th>产品</th><th>售价</th><th>标签</th><th></th></tr></thead>'+
         '<tbody>'+
         displayProducts.map(p=>'<tr>'+
           '<td style="font-weight:600">'+p.name+'</td>'+
           '<td class="pt-price" style="color:var(--gray-900)">¥'+p.price.toFixed(1)+'</td>'+
           '<td>'+(p.tag?'<span class="'+(p.tag==='滞销'?'badge-slow':p.tag==='主推'?'badge-main':'badge-hot')+'">'+p.tag+'</span>':'—')+'</td>'+
+          '<td><button class="btn btn-orange btn-xs" onclick="placeOrder(\''+s.name+'\',\''+p.name+'\','+p.price+',\'\','+p.price+')">下单</button></td>'+
         '</tr>').join('')+
         '</tbody>'+
       '</table>'+
@@ -2395,6 +2645,12 @@ function sendChatMsg(){
   const time = ('0'+now.getHours()).slice(-2)+':'+('0'+now.getMinutes()).slice(-2);
   chatMessages[activeShopChat].push({from:'student',text,time});
   inp.value = '';
+  // 保存到后端
+  fetch(apiBase+'/api/messages/'+activeShopChat, {
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({sender:'student',text:text})
+  }).catch(()=>{});
   // 刷新聊天窗口
   openChat(activeShopChat, '', '', '');
   // 1.5秒后 AI 智能回复
@@ -2421,6 +2677,12 @@ function sendMerchantMsg(){
   const time = ('0'+now.getHours()).slice(-2)+':'+('0'+now.getMinutes()).slice(-2);
   chatMessages[activeShopChat].push({from:'merchant',text,time});
   inp.value = '';
+  // 保存到后端
+  fetch(apiBase+'/api/messages/'+activeShopChat, {
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({sender:'merchant',text:text})
+  }).catch(()=>{});
   openMerchantChat(activeShopChat);
   renderMerchantConvs();
 }

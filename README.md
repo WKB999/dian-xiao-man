@@ -20,42 +20,42 @@
 ## 技术架构
 
 <table>
-<tr bgcolor="#ebf5fb"><td colspan="3" align="center"><b>L1 · 前端表现层</b> &nbsp; Vanilla JS SPA &nbsp; 176KB &nbsp; 零框架依赖</td></tr>
+<tr style="background-color:#ebf5fb"><td colspan="3" align="center"><b>L1 · 前端表现层</b> &nbsp; Vanilla JS SPA &nbsp; 176KB &nbsp; 零框架依赖</td></tr>
 <tr>
-<td width="33%" align="center" bgcolor="#f8fafc"><b>商家端</b> (9 modules)<br>Dashboard · Shop Manager<br>AI Marketing · Smart Pricing<br>Sales Info · Calendar · Reports</td>
-<td width="33%" align="center" bgcolor="#f8fafc"><b>学生端</b> (4 modules)<br>今日促销 · 附近店铺<br>我的订单 · 学校选择</td>
-<td width="33%" align="center" bgcolor="#f8fafc"><b>定位服务</b><br>GPS 自动定位<br>百度地图手动选址<br>地址实时同步数据库</td>
+<td width="33%" align="center" style="background-color:#f8fafc"><b>商家端</b> (9 modules)<br>Dashboard · Shop Manager<br>AI Marketing · Smart Pricing<br>Sales Info · Calendar · Reports</td>
+<td width="33%" align="center" style="background-color:#f8fafc"><b>学生端</b> (4 modules)<br>今日促销 · 附近店铺<br>我的订单 · 学校选择</td>
+<td width="33%" align="center" style="background-color:#f8fafc"><b>定位服务</b><br>GPS 自动定位<br>百度地图手动选址<br>地址实时同步数据库</td>
 </tr>
-<tr bgcolor="#f0f0f0"><td colspan="3" align="center">↓ REST API &nbsp; fetch + Bearer Token</td></tr>
-<tr bgcolor="#e8f5e9"><td colspan="3" align="center"><b>L2 · API 网关层</b> &nbsp; Python Flask &nbsp; 16 endpoints &nbsp; CORS</td></tr>
+<tr style="background-color:#f0f0f0"><td colspan="3" align="center">↓ REST API &nbsp; fetch + Bearer Token</td></tr>
+<tr style="background-color:#e8f5e9"><td colspan="3" align="center"><b>L2 · API 网关层</b> &nbsp; Python Flask &nbsp; 16 endpoints &nbsp; CORS</td></tr>
 <tr>
-<td align="center" bgcolor="#f8fafc"><code>/api/auth</code> · 注册登录</td>
-<td align="center" bgcolor="#f8fafc"><code>/api/shops</code> · 店铺CRUD</td>
-<td align="center" bgcolor="#f8fafc"><code>/api/products</code> · 产品CRUD</td>
-</tr>
-<tr>
-<td align="center" bgcolor="#f8fafc"><code>/api/promotions</code> · 促销管理</td>
-<td align="center" bgcolor="#f8fafc"><code>/api/messages</code> · 消息收发</td>
-<td align="center" bgcolor="#f8fafc"><code>/api/orders</code> · 学生订单</td>
+<td align="center" style="background-color:#f8fafc"><code>/api/auth</code> · 注册登录</td>
+<td align="center" style="background-color:#f8fafc"><code>/api/shops</code> · 店铺CRUD</td>
+<td align="center" style="background-color:#f8fafc"><code>/api/products</code> · 产品CRUD</td>
 </tr>
 <tr>
-<td align="center" bgcolor="#f8fafc"><code>/api/sales-records</code> · 销售记录</td>
-<td align="center" bgcolor="#f8fafc"><code>/api/stats</code> · 全站统计</td>
-<td align="center" bgcolor="#f8fafc"><code>/api/geocode</code> · GPS逆地理编码</td>
-</tr>
-<tr bgcolor="#f0f0f0"><td colspan="3" align="center">↓ SQL &nbsp; SQLite WAL Mode &nbsp; ACID 事务</td></tr>
-<tr bgcolor="#fff3e0"><td colspan="3" align="center"><b>L3 · 数据持久层</b> &nbsp; SQLite &nbsp; 7 tables &nbsp; 外键关联</td></tr>
-<tr>
-<td align="center" bgcolor="#f8fafc"><code>users</code> · 用户账号</td>
-<td align="center" bgcolor="#f8fafc"><code>shops</code> · 店铺信息</td>
-<td align="center" bgcolor="#f8fafc"><code>products</code> · 产品清单</td>
+<td align="center" style="background-color:#f8fafc"><code>/api/promotions</code> · 促销管理</td>
+<td align="center" style="background-color:#f8fafc"><code>/api/messages</code> · 消息收发</td>
+<td align="center" style="background-color:#f8fafc"><code>/api/orders</code> · 学生订单</td>
 </tr>
 <tr>
-<td align="center" bgcolor="#f8fafc"><code>promotions</code> · 促销活动</td>
-<td align="center" bgcolor="#f8fafc"><code>messages</code> · 聊天消息</td>
-<td align="center" bgcolor="#f8fafc"><code>sales_records</code> · 销售记录</td>
+<td align="center" style="background-color:#f8fafc"><code>/api/sales-records</code> · 销售记录</td>
+<td align="center" style="background-color:#f8fafc"><code>/api/stats</code> · 全站统计</td>
+<td align="center" style="background-color:#f8fafc"><code>/api/geocode</code> · GPS逆地理编码</td>
 </tr>
-<tr><td colspan="3" align="center" bgcolor="#f8fafc"><code>orders</code> · 学生订单</td></tr>
+<tr style="background-color:#f0f0f0"><td colspan="3" align="center">↓ SQL &nbsp; SQLite WAL Mode &nbsp; ACID 事务</td></tr>
+<tr style="background-color:#fff3e0"><td colspan="3" align="center"><b>L3 · 数据持久层</b> &nbsp; SQLite &nbsp; 7 tables &nbsp; 外键关联</td></tr>
+<tr>
+<td align="center" style="background-color:#f8fafc"><code>users</code> · 用户账号</td>
+<td align="center" style="background-color:#f8fafc"><code>shops</code> · 店铺信息</td>
+<td align="center" style="background-color:#f8fafc"><code>products</code> · 产品清单</td>
+</tr>
+<tr>
+<td align="center" style="background-color:#f8fafc"><code>promotions</code> · 促销活动</td>
+<td align="center" style="background-color:#f8fafc"><code>messages</code> · 聊天消息</td>
+<td align="center" style="background-color:#f8fafc"><code>sales_records</code> · 销售记录</td>
+</tr>
+<tr><td colspan="3" align="center" style="background-color:#f8fafc"><code>orders</code> · 学生订单</td></tr>
 </table>
 
 ### 分层说明
@@ -71,28 +71,28 @@
 ### 核心业务流程
 
 <table>
-<tr bgcolor="#ebf5fb"><td width="50%" align="center"><b>商家端</b></td><td width="50%" align="center"><b>学生端</b></td></tr>
+<tr style="background-color:#ebf5fb"><td width="50%" align="center"><b>商家端</b></td><td width="50%" align="center"><b>学生端</b></td></tr>
 <tr>
-<td align="center" bgcolor="#f8fafc"> Login · 获取 Token</td>
-<td align="center" bgcolor="#f8fafc"> Login · 获取 Token</td>
+<td align="center" style="background-color:#f8fafc"> Login · 获取 Token</td>
+<td align="center" style="background-color:#f8fafc"> Login · 获取 Token</td>
 </tr>
 <tr>
-<td align="center" bgcolor="#f8fafc"> Manage Shop · 添加产品 / 调价 / 发促销</td>
-<td align="center" bgcolor="#f8fafc"> Browse · 今日促销 / 附近店铺</td>
+<td align="center" style="background-color:#f8fafc"> Manage Shop · 添加产品 / 调价 / 发促销</td>
+<td align="center" style="background-color:#f8fafc"> Browse · 今日促销 / 附近店铺</td>
 </tr>
 <tr>
-<td align="center" bgcolor="#f0f0f0"> Token Auth · SHA-256 + shop_id 校验</td>
-<td align="center" bgcolor="#f0f0f0"> API Aggregate · SQL JOIN shops+products</td>
+<td align="center" style="background-color:#f0f0f0"> Token Auth · SHA-256 + shop_id 校验</td>
+<td align="center" style="background-color:#f0f0f0"> API Aggregate · SQL JOIN shops+products</td>
 </tr>
 <tr>
-<td align="center" bgcolor="#f8fafc"> SQLite Write · products / promos / shops</td>
-<td align="center" bgcolor="#f8fafc"> Filter · 按学校精准筛选</td>
+<td align="center" style="background-color:#f8fafc"> SQLite Write · products / promos / shops</td>
+<td align="center" style="background-color:#f8fafc"> Filter · 按学校精准筛选</td>
 </tr>
 <tr>
-<td align="center" bgcolor="#f8fafc"> Render · 前端动态更新</td>
-<td align="center" bgcolor="#f8fafc"> Order · 下单存入 orders 表</td>
+<td align="center" style="background-color:#f8fafc"> Render · 前端动态更新</td>
+<td align="center" style="background-color:#f8fafc"> Order · 下单存入 orders 表</td>
 </tr>
-<tr bgcolor="#fff3e0"><td colspan="2" align="center">
+<tr style="background-color:#fff3e0"><td colspan="2" align="center">
 <b>共享层</b> &nbsp; API Gateway · Token Auth · SQLite DB · CORS Proxy<br>
 商家修改 → 即时写入 DB → 学生刷新页面 → 实时可见
 </td></tr>
